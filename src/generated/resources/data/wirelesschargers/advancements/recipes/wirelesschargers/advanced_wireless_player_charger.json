@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "wirelesschargers:advanced_wireless_player_charger"
+    ]
+  },
+  "criteria": {
+    "has_basic_charger": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "wirelesschargers:basic_wireless_player_charger"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "wirelesschargers:advanced_wireless_player_charger"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_basic_charger",
+      "has_the_recipe"
+    ]
+  ]
+}

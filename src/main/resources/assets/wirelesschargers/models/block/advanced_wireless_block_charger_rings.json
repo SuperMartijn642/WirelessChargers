@@ -1,0 +1,6 @@
+{
+	"parent": "wirelesschargers:block/advanced_wireless_charger_rings",
+	"textures": {
+		"ring": "wirelesschargers:block/copper_block"
+	}
+}

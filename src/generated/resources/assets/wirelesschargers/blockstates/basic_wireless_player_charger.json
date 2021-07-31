@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "wirelesschargers:block/basic_wireless_charger"
+    }
+  }
+}

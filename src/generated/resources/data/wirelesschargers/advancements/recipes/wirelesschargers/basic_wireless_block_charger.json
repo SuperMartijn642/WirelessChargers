@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "wirelesschargers:basic_wireless_block_charger"
+    ]
+  },
+  "criteria": {
+    "has_ender_pearl": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "tag": "forge:ender_pearls"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "wirelesschargers:basic_wireless_block_charger"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_ender_pearl",
+      "has_the_recipe"
+    ]
+  ]
+}

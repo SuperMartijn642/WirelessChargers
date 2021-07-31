@@ -1,0 +1,6 @@
+{
+	"parent": "wirelesschargers:block/advanced_wireless_charger_rings",
+	"textures": {
+		"ring": "minecraft:block/gold_block"
+	}
+}
