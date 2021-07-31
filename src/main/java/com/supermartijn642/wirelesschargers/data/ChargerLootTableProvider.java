@@ -6,8 +6,8 @@ import com.supermartijn642.wirelesschargers.ChargerType;
 import net.minecraft.block.Block;
 import net.minecraft.data.LootTableProvider;
 import net.minecraft.data.loot.BlockLootTables;
-import net.minecraft.loot.*;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.storage.loot.*;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 

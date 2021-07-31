@@ -1,8 +1,6 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
@@ -32,15 +30,15 @@ public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextW
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
+    public void render(int mouseX, int mouseY, float partialTicks){
         Minecraft.getInstance().getTextureManager().bind(BARS);
         GlStateManager._enableAlphaTest();
-        ScreenUtils.drawTexture(matrixStack, this.x, this.y, this.width, this.height, this.isHovered() ? 1 / 11f : 0, 0, 1 / 11f, 1);
+        ScreenUtils.drawTexture(this.x, this.y, this.width, this.height, this.isHovered() ? 1 / 11f : 0, 0, 1 / 11f, 1);
         int energy = this.energy.get();
         int capacity = this.capacity.get();
         float percentage = capacity == 0 ? 1 : Math.max(Math.min(energy / (float)capacity, 1), 0);
         if(percentage != 0)
-            ScreenUtils.drawTexture(matrixStack, this.x, this.y + this.height * (1 - percentage), this.width, this.height * percentage, 3 / 11f, 1 - percentage, 1 / 11f, percentage);
+            ScreenUtils.drawTexture(this.x, this.y + this.height * (1 - percentage), this.width, this.height * percentage, 3 / 11f, 1 - percentage, 1 / 11f, percentage);
     }
 
     @Override

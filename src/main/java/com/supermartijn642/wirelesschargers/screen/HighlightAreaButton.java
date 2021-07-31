@@ -1,6 +1,5 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
 import com.supermartijn642.core.gui.widget.AbstractButtonWidget;
@@ -34,9 +33,9 @@ public class HighlightAreaButton extends AbstractButtonWidget implements IHoverT
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
+    public void render(int mouseX, int mouseY, float partialTicks){
         ScreenUtils.bindTexture(BUTTONS);
-        ScreenUtils.drawTexture(matrixStack, this.x, this.y, this.width, this.height, this.highlightArea.get() ? 0 : 1 / 2f, (this.active ? this.hovered ? 1 : 0 : 2) / 3f, 1 / 2f, 1 / 3f);
+        ScreenUtils.drawTexture(this.x, this.y, this.width, this.height, this.highlightArea.get() ? 0 : 1 / 2f, (this.active ? this.hovered ? 1 : 0 : 2) / 3f, 1 / 2f, 1 / 3f);
     }
 
     @Override

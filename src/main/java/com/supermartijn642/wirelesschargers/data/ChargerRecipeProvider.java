@@ -30,7 +30,7 @@ public class ChargerRecipeProvider extends RecipeProvider {
             .define('B', Tags.Items.INGOTS_IRON)
             .define('C', Tags.Items.ENDER_PEARLS)
             .define('D', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy("has_ender_pearl", has(Tags.Items.ENDER_PEARLS))
+            .unlocks("has_ender_pearl", has(Tags.Items.ENDER_PEARLS))
             .save(recipeConsumer);
 
         // Advanced wireless block charger
@@ -43,7 +43,7 @@ public class ChargerRecipeProvider extends RecipeProvider {
             .define('C', ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem())
             .define('D', Items.BLAZE_POWDER)
             .define('E', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy("has_basic_charger", has(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem()))
+            .unlocks("has_basic_charger", has(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem()))
             .save(recipeConsumer);
 
         // Basic wireless player charger
@@ -55,7 +55,7 @@ public class ChargerRecipeProvider extends RecipeProvider {
             .define('B', Tags.Items.INGOTS_IRON)
             .define('C', Tags.Items.ENDER_PEARLS)
             .define('D', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy("has_ender_pearl", has(Tags.Items.ENDER_PEARLS))
+            .unlocks("has_ender_pearl", has(Tags.Items.ENDER_PEARLS))
             .save(recipeConsumer);
 
         // Advanced wireless block charger
@@ -68,7 +68,7 @@ public class ChargerRecipeProvider extends RecipeProvider {
             .define('C', ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
             .define('D', Items.BLAZE_POWDER)
             .define('E', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy("has_basic_charger", has(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem()))
+            .unlocks("has_basic_charger", has(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem()))
             .save(recipeConsumer);
     }
 }

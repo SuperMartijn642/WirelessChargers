@@ -11,6 +11,7 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
@@ -42,7 +43,7 @@ public class ChargerBlock extends BaseBlock implements IWaterLoggable {
     public final ChargerType type;
 
     public ChargerBlock(ChargerType type){
-        super(type.getRegistryName(), true, Properties.of(Material.METAL, DyeColor.GRAY).harvestTool(ToolType.PICKAXE).requiresCorrectToolForDrops().strength(2f));
+        super(type.getRegistryName(), true, Properties.of(Material.METAL, DyeColor.GRAY).harvestTool(ToolType.PICKAXE).strength(2f));
         this.type = type;
 
         this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false));
@@ -61,12 +62,12 @@ public class ChargerBlock extends BaseBlock implements IWaterLoggable {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context){
-        FluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
+        IFluidState fluid = context.getLevel().getFluidState(context.getClickedPos());
         return this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, fluid.getType() == Fluids.WATER);
     }
 
     @Override
-    public FluidState getFluidState(BlockState state){
+    public IFluidState getFluidState(BlockState state){
         return state.getValue(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
@@ -90,7 +91,7 @@ public class ChargerBlock extends BaseBlock implements IWaterLoggable {
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult rayTraceResult){
         if(world.isClientSide)
             ClientProxy.openChargerScreen(TextComponents.block(this).get(), pos);
-        return ActionResultType.sidedSuccess(world.isClientSide);
+        return ActionResultType.SUCCESS;
     }
 
     @Override

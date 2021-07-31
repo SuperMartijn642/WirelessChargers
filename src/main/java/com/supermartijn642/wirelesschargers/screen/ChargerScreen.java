@@ -1,6 +1,5 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.supermartijn642.core.gui.TileEntityBaseScreen;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
 import net.minecraft.util.math.BlockPos;
@@ -35,8 +34,8 @@ public class ChargerScreen extends TileEntityBaseScreen<ChargerBlockEntity> {
     }
 
     @Override
-    protected void render(MatrixStack matrixStack, int mouseX, int mouseY, @Nonnull ChargerBlockEntity entity){
-        this.drawScreenBackground(matrixStack);
+    protected void render(int mouseX, int mouseY, @Nonnull ChargerBlockEntity entity){
+        this.drawScreenBackground();
     }
 
     private int getEnergy(){
