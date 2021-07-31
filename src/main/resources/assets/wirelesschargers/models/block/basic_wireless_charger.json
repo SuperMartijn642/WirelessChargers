@@ -7,7 +7,7 @@
 		"inside": "wirelesschargers:block/wireless_charger_inside",
 		"side": "wirelesschargers:block/wireless_charger_side",
 		"top": "wirelesschargers:block/wireless_charger_top",
-		"particle": "#bottom"
+		"particle": "wirelesschargers:block/wireless_charger_bottom"
 	},
 	"elements": [
 		{

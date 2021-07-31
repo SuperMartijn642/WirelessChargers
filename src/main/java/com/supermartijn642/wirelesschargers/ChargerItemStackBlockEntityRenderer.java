@@ -1,16 +1,14 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.supermartijn642.core.ClientUtils;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.ItemStackTileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -29,43 +27,54 @@ public class ChargerItemStackBlockEntityRenderer extends ItemStackTileEntityRend
     }
 
     @Override
-    public void renderByItem(ItemStack stack, MatrixStack matrixStack, IRenderTypeBuffer bufferSource, int combinedLight, int combinedOverlay){
+    public void renderByItem(ItemStack stack){
         IBakedModel model = ClientUtils.getMinecraft().getItemRenderer().getItemModelShaper().getItemModel(stack);
-        renderDefaultItem(stack, matrixStack, bufferSource, combinedLight, combinedOverlay, model);
+        renderDefaultItem(stack, model);
 
         ChargerBlockEntity entity = ((ChargerBlock)((BlockItem)stack.getItem()).getBlock()).type.createTileEntity();
         entity.readData(stack.getTag() == null ? new CompoundNBT() : stack.getTag().getCompound("tileData"));
 
-        TileEntityRendererDispatcher.instance.renderItem(entity, matrixStack, bufferSource, combinedLight, combinedOverlay);
+        TileEntityRendererDispatcher.instance.renderItem(entity);
     }
 
     /**
-     * Adapted from {@link ItemRenderer#render(ItemStack, ItemCameraTransforms.TransformType, boolean, MatrixStack, IRenderTypeBuffer, int, int, IBakedModel)}
+     * Adapted from {@link ItemRenderer#render(ItemStack, IBakedModel)}
      */
-    private static void renderDefaultItem(ItemStack itemStack, MatrixStack matrixStack, IRenderTypeBuffer renderTypeBuffer, int combinedLight, int combinedOverlay, IBakedModel model){
-        matrixStack.pushPose();
+    private static void renderDefaultItem(ItemStack itemStack, IBakedModel model){
+        GlStateManager.pushMatrix();
 
-        RenderType rendertype = RenderTypeLookup.getRenderType(itemStack);
-        IVertexBuilder ivertexbuilder = ItemRenderer.getFoilBuffer(renderTypeBuffer, rendertype, true, itemStack.hasFoil());
+        renderModelLists(model, itemStack, -1);
+        if(itemStack.hasFoil()){
+            ItemRenderer.renderFoilLayer(ClientUtils.getTextureManager(), () -> {
+                renderModelLists(model, ItemStack.EMPTY, -8372020);
+            }, 8);
+        }
 
-        renderModelLists(model, itemStack, combinedLight, combinedOverlay, matrixStack, ivertexbuilder);
-
-        matrixStack.popPose();
+        GlStateManager.popMatrix();
     }
 
     /**
-     * Adapted from {@link ItemRenderer#renderModelLists(IBakedModel, ItemStack, int, int, MatrixStack, IVertexBuilder)}
+     * Adapted from {@link ItemRenderer#renderModelLists(IBakedModel, int, ItemStack)}
      */
-    private static void renderModelLists(IBakedModel model, ItemStack stack, int combinedLight, int combinedOverlay, MatrixStack matrixStack, IVertexBuilder vertexConsumer){
-        ItemRenderer renderer = ClientUtils.getMinecraft().getItemRenderer();
+    private static void renderModelLists(IBakedModel model, ItemStack stack, int combinedLight){
+        ItemRenderer itemRenderer = ClientUtils.getItemRenderer();
 
+        if(net.minecraftforge.common.ForgeConfig.CLIENT.allowEmissiveItems.get()){
+            net.minecraftforge.client.ForgeHooksClient.renderLitItem(itemRenderer, model, combinedLight, stack);
+            return;
+        }
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuilder();
+        bufferbuilder.begin(7, DefaultVertexFormats.BLOCK_NORMALS);
         Random random = new Random();
+
         for(Direction direction : Direction.values()){
             random.setSeed(42L);
-            renderer.renderQuadList(matrixStack, vertexConsumer, model.getQuads(null, direction, random), stack, combinedLight, combinedOverlay);
+            itemRenderer.renderQuadList(bufferbuilder, model.getQuads(null, direction, random), combinedLight, stack);
         }
 
         random.setSeed(42L);
-        renderer.renderQuadList(matrixStack, vertexConsumer, model.getQuads(null, null, random), stack, combinedLight, combinedOverlay);
+        itemRenderer.renderQuadList(bufferbuilder, model.getQuads(null, null, random), combinedLight, stack);
+        tessellator.end();
     }
 }

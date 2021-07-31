@@ -19,7 +19,7 @@ public class ChargerBlockStateProvider extends BlockStateProvider {
     protected void registerStatesAndModels(){
         for(ChargerType type : ChargerType.values()){
             this.getVariantBuilder(type.getBlock()).forAllStatesExcept(
-                state -> new ConfiguredModel[]{new ConfiguredModel(this.models().getExistingFile(type.modelType.blockModel))},
+                state -> new ConfiguredModel[]{new ConfiguredModel(this.getExistingFile(type.modelType.blockModel))},
                 BlockStateProperties.WATERLOGGED
             );
         }

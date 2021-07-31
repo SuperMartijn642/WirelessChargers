@@ -24,8 +24,7 @@ public class ClientProxy {
 
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent e){
-        for(ChargerType type : ChargerType.values())
-            ClientRegistry.bindTileEntityRenderer(type.getTileEntityType(), ChargerRenderer::new);
+        ClientRegistry.bindTileEntitySpecialRenderer(ChargerBlockEntity.class, new ChargerRenderer());
     }
 
     @SubscribeEvent
