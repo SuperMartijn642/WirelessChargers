@@ -1,13 +1,12 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
 import com.supermartijn642.core.gui.widget.AbstractButtonWidget;
 import com.supermartijn642.core.gui.widget.IHoverTextWidget;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -24,15 +23,15 @@ public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextW
     private final Supplier<Integer> energy, capacity;
 
     public EnergyBarWidget(int x, int y, int width, int height, Supplier<Integer> energy, Supplier<Integer> capacity){
-        super(x, y, width, height, () -> EnergyFormat.cycleEnergyType(!Screen.hasShiftDown()));
+        super(x, y, width, height, () -> EnergyFormat.cycleEnergyType(!GuiScreen.isShiftKeyDown()));
         this.energy = energy;
         this.capacity = capacity;
     }
 
     @Override
     public void render(int mouseX, int mouseY, float partialTicks){
-        Minecraft.getInstance().getTextureManager().bind(BARS);
-        GlStateManager.enableAlphaTest();
+        ScreenUtils.bindTexture(BARS);
+        GlStateManager.enableAlpha();
         ScreenUtils.drawTexture(this.x, this.y, this.width, this.height, this.isHovered() ? 1 / 11f : 0, 0, 1 / 11f, 1);
         int energy = this.energy.get();
         int capacity = this.capacity.get();

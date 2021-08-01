@@ -1,18 +1,17 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BaseTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -23,37 +22,64 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileEntity, IEnergyStorage {
+public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
-    private static final Set<Direction> CAPABILITY_DIRECTIONS;
+    private static final Set<EnumFacing> CAPABILITY_DIRECTIONS;
 
     static{
-        Set<Direction> directions = new HashSet<>();
+        Set<EnumFacing> directions = new HashSet<>();
         directions.add(null);
-        directions.addAll(Arrays.asList(Direction.values()));
+        directions.addAll(Arrays.asList(EnumFacing.values()));
         CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
     }
 
-    private final LazyOptional<IEnergyStorage> capability = LazyOptional.of(() -> this);
+    public static class BasicBlockChargerEntity extends ChargerBlockEntity {
+
+        public BasicBlockChargerEntity(){
+            super(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER);
+        }
+    }
+
+    public static class AdvancedBlockChargerEntity extends ChargerBlockEntity {
+
+        public AdvancedBlockChargerEntity(){
+            super(ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER);
+        }
+    }
+
+    public static class BasicPlayerChargerEntity extends ChargerBlockEntity {
+
+        public BasicPlayerChargerEntity(){
+            super(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER);
+        }
+    }
+
+    public static class AdvancedPlayerChargerEntity extends ChargerBlockEntity {
+
+        public AdvancedPlayerChargerEntity(){
+            super(ChargerType.ADVANCED_WIRELESS_PLAYER_CHARGER);
+        }
+    }
+
     public final ChargerType type;
     private int energy;
     private boolean highlightArea;
     private RedstoneMode redstoneMode = RedstoneMode.DISABLED;
     private boolean isRedstonePowered;
     private int blockSearchX, blockSearchY, blockSearchZ;
-    private final Map<BlockPos,Direction> chargeableBlocks = new LinkedHashMap<>();
+    private final Map<BlockPos,EnumFacing> chargeableBlocks = new LinkedHashMap<>();
     public int renderingTickCount = 0;
     public float renderingRotationSpeed, renderingRotation;
 
     public ChargerBlockEntity(ChargerType type){
-        super(type.getTileEntityType());
+        super();
         this.type = type;
     }
 
     @Override
-    public void tick(){
+    public void update(){
         this.renderingTickCount++;
 
         if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
@@ -71,13 +97,14 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
             // find blocks with the energy capability
             for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
                 BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
-                BlockPos pos = this.worldPosition.offset(offset);
+                BlockPos pos = this.pos.add(offset);
 
-                if(!pos.equals(this.worldPosition)){
-                    TileEntity entity = this.level.getBlockEntity(pos);
+                if(!pos.equals(this.pos)){
+                    TileEntity entity = this.world.getTileEntity(pos);
                     boolean canAcceptEnergy = false;
-                    for(Direction direction : CAPABILITY_DIRECTIONS){
-                        if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(CapabilityEnergy.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
+                    for(EnumFacing direction : CAPABILITY_DIRECTIONS){
+                        IEnergyStorage capability;
+                        if(entity != null && !(entity instanceof ChargerBlockEntity) && (capability = entity.getCapability(CapabilityEnergy.ENERGY, direction)) != null && capability.canReceive()){
                             this.chargeableBlocks.put(offset, direction);
                             canAcceptEnergy = true;
                             break;
@@ -104,12 +131,12 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
             // charge block in the list
             if(this.energy > 0){
                 Set<BlockPos> toRemove = new HashSet<>();
-                for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                    TileEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                    LazyOptional<IEnergyStorage> optional;
-                    if(tile != null && (optional = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())).isPresent()){
+                for(Map.Entry<BlockPos,EnumFacing> entry : this.chargeableBlocks.entrySet()){
+                    TileEntity tile = this.world.getTileEntity(this.pos.add(entry.getKey()));
+                    IEnergyStorage capability;
+                    if(tile != null && (capability = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())) != null){
                         final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                        int transferred = optional.map(storage -> storage.receiveEnergy(toTransfer, false)).orElse(0);
+                        int transferred = capability.receiveEnergy(toTransfer, false);
                         if(transferred > 0){
                             spawnParticles = true;
                             this.energy -= transferred;
@@ -125,37 +152,39 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
         }
 
         if(this.type.canChargePlayers && this.energy > 0){
-            List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, this.getOperatingArea());
+            List<EntityPlayer> players = this.world.getEntitiesWithinAABB(EntityPlayer.class, this.getOperatingArea());
             loop:
-            for(PlayerEntity player : players){
+            for(EntityPlayer player : players){
                 int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                PlayerInventory inventory = player.inventory;
-                for(int i = 0; i < inventory.getContainerSize(); i++){
-                    ItemStack stack = inventory.getItem(i);
+                InventoryPlayer inventory = player.inventory;
+                for(int i = 0; i < inventory.getSizeInventory(); i++){
+                    ItemStack stack = inventory.getStackInSlot(i);
                     if(!stack.isEmpty()){
-                        LazyOptional<IEnergyStorage> optional = stack.getCapability(CapabilityEnergy.ENERGY);
-                        final int max = toTransfer;
-                        int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                        if(transferred > 0){
-                            spawnParticles = true;
-                            this.energy -= transferred;
-                            this.dataChanged();
-                            if(this.energy <= 0)
-                                break loop;
-                            toTransfer -= transferred;
-                            if(toTransfer <= 0)
-                                continue loop;
+                        IEnergyStorage capability = stack.getCapability(CapabilityEnergy.ENERGY, null);
+                        if(capability != null){
+                            final int max = toTransfer;
+                            int transferred = capability.receiveEnergy(max, false);
+                            if(transferred > 0){
+                                spawnParticles = true;
+                                this.energy -= transferred;
+                                this.dataChanged();
+                                if(this.energy <= 0)
+                                    break loop;
+                                toTransfer -= transferred;
+                                if(toTransfer <= 0)
+                                    continue loop;
+                            }
                         }
                     }
                 }
             }
         }
 
-        if(spawnParticles && this.level.isClientSide && this.level.getRandom().nextDouble() <= this.getEnergyFillPercentage()){
-            double x = this.worldPosition.getX() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            double y = this.worldPosition.getY() + 0.7 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            double z = this.worldPosition.getZ() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            this.level.addParticle(RedstoneParticleData.REDSTONE, x, y, z, 0.0D, 0.0D, 0.0D);
+        if(spawnParticles && this.world.isRemote && this.world.rand.nextDouble() <= this.getEnergyFillPercentage()){
+            double x = this.pos.getX() + 0.5 + this.world.rand.nextFloat() * 0.8 - 0.4;
+            double y = this.pos.getY() + 0.7 + this.world.rand.nextFloat() * 0.8 - 0.4;
+            double z = this.pos.getZ() + 0.5 + this.world.rand.nextFloat() * 0.8 - 0.4;
+            this.world.spawnParticle(EnumParticleTypes.REDSTONE, x, y, z, 0.0D, 0.0D, 0.0D);
         }
     }
 
@@ -164,7 +193,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     public AxisAlignedBB getOperatingArea(){
-        return new AxisAlignedBB(this.worldPosition).inflate(this.type.range.get());
+        return new AxisAlignedBB(this.pos).grow(this.type.range.get());
     }
 
     public void setRedstonePowered(boolean powered){
@@ -193,72 +222,71 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    protected CompoundNBT writeData(){
-        CompoundNBT compound = new CompoundNBT();
-        compound.putInt("energy", this.energy);
-        compound.putBoolean("highlightArea", this.highlightArea);
-        compound.putInt("redstoneMode", this.redstoneMode.index);
-        compound.putBoolean("isRedstonePowered", this.isRedstonePowered);
+    protected NBTTagCompound writeData(){
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("energy", this.energy);
+        compound.setBoolean("highlightArea", this.highlightArea);
+        compound.setInteger("redstoneMode", this.redstoneMode.index);
+        compound.setBoolean("isRedstonePowered", this.isRedstonePowered);
         if(this.type.canChargeBlocks){
-            compound.putInt("blockSearchX", this.blockSearchX);
-            compound.putInt("blockSearchY", this.blockSearchX);
-            compound.putInt("blockSearchZ", this.blockSearchX);
+            compound.setInteger("blockSearchX", this.blockSearchX);
+            compound.setInteger("blockSearchY", this.blockSearchX);
+            compound.setInteger("blockSearchZ", this.blockSearchX);
             int[] arr = new int[this.chargeableBlocks.size() * 4];
             int index = 0;
-            for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
+            for(Map.Entry<BlockPos,EnumFacing> entry : this.chargeableBlocks.entrySet()){
                 arr[index] = entry.getKey().getX();
                 arr[index + 1] = entry.getKey().getY();
                 arr[index + 2] = entry.getKey().getZ();
-                arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().get3DDataValue();
+                arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().getIndex();
                 index++;
             }
-            compound.putIntArray("chargeableBlocks", arr);
+            compound.setIntArray("chargeableBlocks", arr);
         }
         return compound;
     }
 
     @Override
-    public CompoundNBT writeItemStackData(){
-        CompoundNBT compound = this.writeData();
-        if(compound.getInt("energy") <= 0 && compound.getInt("redstoneMode") == 2)
+    public NBTTagCompound writeItemStackData(){
+        NBTTagCompound compound = this.writeData();
+        if(compound.getInteger("energy") <= 0 && compound.getInteger("redstoneMode") == 2)
             return null;
 
-        compound.remove("highlightArea");
-        compound.remove("isRedstonePowered");
+        compound.removeTag("highlightArea");
+        compound.removeTag("isRedstonePowered");
         if(this.type.canChargeBlocks){
-            compound.remove("blockSearchX");
-            compound.remove("blockSearchY");
-            compound.remove("blockSearchZ");
-            compound.remove("chargeableBlocks");
+            compound.removeTag("blockSearchX");
+            compound.removeTag("blockSearchY");
+            compound.removeTag("blockSearchZ");
+            compound.removeTag("chargeableBlocks");
         }
         return compound;
     }
 
     @Override
-    protected void readData(CompoundNBT compound){
-        this.energy = compound.getInt("energy");
+    protected void readData(NBTTagCompound compound){
+        this.energy = compound.getInteger("energy");
         this.highlightArea = compound.getBoolean("highlightArea");
-        this.redstoneMode = RedstoneMode.fromIndex(compound.getInt("redstoneMode"));
+        this.redstoneMode = RedstoneMode.fromIndex(compound.getInteger("redstoneMode"));
         this.isRedstonePowered = compound.getBoolean("isRedstonePowered");
-        if(this.type.canChargeBlocks && compound.contains("chargeableBlocks")){
-            this.blockSearchX = compound.getInt("blockSearchX");
-            this.blockSearchY = compound.getInt("blockSearchY");
-            this.blockSearchZ = compound.getInt("blockSearchZ");
+        if(this.type.canChargeBlocks && compound.hasKey("chargeableBlocks")){
+            this.blockSearchX = compound.getInteger("blockSearchX");
+            this.blockSearchY = compound.getInteger("blockSearchY");
+            this.blockSearchZ = compound.getInteger("blockSearchZ");
             int[] arr = compound.getIntArray("chargeableBlocks");
             this.chargeableBlocks.clear();
             for(int i = 0; i < arr.length / 4; i++)
                 this.chargeableBlocks.put(
                     new BlockPos(arr[i], arr[i + 1], arr[i + 2]),
-                    arr[i + 3] == -1 ? null : Direction.from3DDataValue(arr[i + 3])
+                    arr[i + 3] == -1 ? null : EnumFacing.getFront(arr[i + 3])
                 );
         }
     }
 
-    @Nonnull
     @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side){
-        if(cap == CapabilityEnergy.ENERGY && side != Direction.UP)
-            return this.capability.cast();
+    public <T> T getCapability(@Nonnull Capability<T> cap, @Nullable EnumFacing side){
+        if(cap == CapabilityEnergy.ENERGY && side != EnumFacing.UP)
+            return CapabilityEnergy.ENERGY.cast(this);
         return super.getCapability(cap, side);
     }
 
@@ -298,14 +326,8 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    public void onChunkUnloaded(){
-        this.capability.invalidate();
-        super.onChunkUnloaded();
-    }
-
-    @Override
     public AxisAlignedBB getRenderBoundingBox(){
-        return this.highlightArea ? this.getOperatingArea() : new AxisAlignedBB(this.worldPosition);
+        return this.highlightArea ? this.getOperatingArea() : new AxisAlignedBB(this.pos);
     }
 
     public enum RedstoneMode {

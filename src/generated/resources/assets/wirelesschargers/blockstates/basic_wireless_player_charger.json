@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
-      "model": "wirelesschargers:block/basic_wireless_charger"
+    "ring=false": {
+      "model": "wirelesschargers:basic_wireless_charger"
+    },
+    "ring=true": {
+      "model": "wirelesschargers:basic_wireless_player_charger_rings"
     }
   }
 }

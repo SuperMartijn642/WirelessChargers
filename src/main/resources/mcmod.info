@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "wirelesschargers",
+    "name": "Wireless Chargers",
+    "description": "Wireless Chargers adds chargers which can charge nearby blocks and players!",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "SuperMartijn642"
+    ],
+    "credits": "",
+    "logoFile": "wirelesschargers.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
