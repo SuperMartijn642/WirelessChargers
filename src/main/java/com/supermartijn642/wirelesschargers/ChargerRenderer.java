@@ -118,6 +118,7 @@ public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
                 .setTextureState(NO_TEXTURE)
                 .setCullState(NO_CULL)
                 .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
+                .setWriteMaskState(RenderState.COLOR_WRITE)
                 .createCompositeState(false);
         }
     }
