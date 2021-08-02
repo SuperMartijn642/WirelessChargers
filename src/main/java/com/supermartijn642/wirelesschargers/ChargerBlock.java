@@ -30,7 +30,6 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ToolType;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -44,7 +43,7 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
     public final ChargerType type;
 
     public ChargerBlock(ChargerType type){
-        super(type.getRegistryName(), true, Properties.of(Material.METAL, DyeColor.GRAY).harvestTool(ToolType.PICKAXE).requiresCorrectToolForDrops().strength(2f));
+        super(type.getRegistryName(), true, Properties.of(Material.METAL, DyeColor.GRAY).strength(2f));
         this.type = type;
 
         this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false));
