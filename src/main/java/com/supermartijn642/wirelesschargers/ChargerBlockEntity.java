@@ -53,7 +53,6 @@ public class ChargerBlockEntity extends BaseTileEntity implements IEnergyStorage
     }
 
     public void tick(){
-        this.energy = this.type.capacity.get();
         this.renderingTickCount++;
 
         if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
