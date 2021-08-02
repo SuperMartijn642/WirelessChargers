@@ -48,7 +48,7 @@ description='''Wireless Chargers adds chargers which can charge nearby blocks an
 [[dependencies.wirelesschargers]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16,1.17)"
+    versionRange="[1.17,1.18)"
     ordering="NONE"
     side="BOTH"
 # Add a dependency on SuperMartijn642's Config Lib

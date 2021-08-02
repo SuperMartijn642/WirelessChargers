@@ -1,10 +1,10 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.supermartijn642.core.gui.TileEntityBaseScreen;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nonnull;
 
@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
  */
 public class ChargerScreen extends TileEntityBaseScreen<ChargerBlockEntity> {
 
-    public ChargerScreen(ITextComponent title, BlockPos tilePos){
+    public ChargerScreen(Component title, BlockPos tilePos){
         super(title, tilePos);
     }
 
@@ -35,7 +35,7 @@ public class ChargerScreen extends TileEntityBaseScreen<ChargerBlockEntity> {
     }
 
     @Override
-    protected void render(MatrixStack matrixStack, int mouseX, int mouseY, @Nonnull ChargerBlockEntity entity){
+    protected void render(PoseStack matrixStack, int mouseX, int mouseY, @Nonnull ChargerBlockEntity entity){
         this.drawScreenBackground(matrixStack);
     }
 

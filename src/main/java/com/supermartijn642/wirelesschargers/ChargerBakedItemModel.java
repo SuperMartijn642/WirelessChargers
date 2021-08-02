@@ -1,16 +1,16 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraftforge.client.model.BakedModelWrapper;
 
 /**
  * Created 3/18/2021 by SuperMartijn642
  */
-public class ChargerBakedItemModel extends BakedModelWrapper<IBakedModel> {
+public class ChargerBakedItemModel extends BakedModelWrapper<BakedModel> {
 
-    public ChargerBakedItemModel(IBakedModel model){
+    public ChargerBakedItemModel(BakedModel model){
         super(model);
     }
 
@@ -20,7 +20,7 @@ public class ChargerBakedItemModel extends BakedModelWrapper<IBakedModel> {
     }
 
     @Override
-    public IBakedModel handlePerspective(ItemCameraTransforms.TransformType cameraTransformType, MatrixStack mat){
+    public BakedModel handlePerspective(ItemTransforms.TransformType cameraTransformType, PoseStack mat){
         super.handlePerspective(cameraTransformType, mat);
         return this;
     }

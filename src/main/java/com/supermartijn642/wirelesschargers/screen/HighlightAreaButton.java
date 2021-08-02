@@ -1,16 +1,16 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
 import com.supermartijn642.core.gui.widget.AbstractButtonWidget;
 import com.supermartijn642.core.gui.widget.IHoverTextWidget;
 import com.supermartijn642.wirelesschargers.WirelessChargers;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Supplier;
 
@@ -29,19 +29,19 @@ public class HighlightAreaButton extends AbstractButtonWidget implements IHoverT
     }
 
     @Override
-    protected ITextComponent getNarrationMessage(){
+    protected Component getNarrationMessage(){
         return this.getHoverText();
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks){
         ScreenUtils.bindTexture(BUTTONS);
         ScreenUtils.drawTexture(matrixStack, this.x, this.y, this.width, this.height, this.highlightArea.get() ? 0 : 1 / 2f, (this.active ? this.hovered ? 1 : 0 : 2) / 3f, 1 / 2f, 1 / 3f);
     }
 
     @Override
-    public ITextComponent getHoverText(){
-        ITextComponent value = this.highlightArea.get() ? TextComponents.string("True").color(TextFormatting.GREEN).get() : TextComponents.string("False").color(TextFormatting.RED).get();
-        return TextComponents.translation("wirelesschargers.screen.highlight_area", value).color(TextFormatting.GRAY).get();
+    public Component getHoverText(){
+        Component value = this.highlightArea.get() ? TextComponents.string("True").color(ChatFormatting.GREEN).get() : TextComponents.string("False").color(ChatFormatting.RED).get();
+        return TextComponents.translation("wirelesschargers.screen.highlight_area", value).color(ChatFormatting.GRAY).get();
     }
 }

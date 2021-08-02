@@ -1,18 +1,15 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.supermartijn642.core.ClientUtils;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
 import com.supermartijn642.core.gui.widget.AbstractButtonWidget;
 import com.supermartijn642.core.gui.widget.IHoverTextWidget;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Supplier;
 
@@ -32,9 +29,8 @@ public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextW
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
-        Minecraft.getInstance().getTextureManager().bind(BARS);
-        GlStateManager._enableAlphaTest();
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks){
+        ScreenUtils.bindTexture(BARS);
         ScreenUtils.drawTexture(matrixStack, this.x, this.y, this.width, this.height, this.isHovered() ? 1 / 11f : 0, 0, 1 / 11f, 1);
         int energy = this.energy.get();
         int capacity = this.capacity.get();
@@ -44,14 +40,14 @@ public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextW
     }
 
     @Override
-    public ITextComponent getHoverText(){
-        ITextComponent energy = TextComponents.string(EnergyFormat.formatEnergy(this.energy.get())).color(TextFormatting.GOLD).get();
-        ITextComponent capacity = TextComponents.string(EnergyFormat.formatEnergy(this.capacity.get())).color(TextFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(TextFormatting.GRAY).get();
-        return TextComponents.translation("wirelesschargers.screen.stored_energy", energy, capacity).color(TextFormatting.GRAY).get();
+    public Component getHoverText(){
+        Component energy = TextComponents.string(EnergyFormat.formatEnergy(this.energy.get())).color(ChatFormatting.GOLD).get();
+        Component capacity = TextComponents.string(EnergyFormat.formatEnergy(this.capacity.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(ChatFormatting.GRAY).get();
+        return TextComponents.translation("wirelesschargers.screen.stored_energy", energy, capacity).color(ChatFormatting.GRAY).get();
     }
 
     @Override
-    protected ITextComponent getNarrationMessage(){
+    protected Component getNarrationMessage(){
         return this.getHoverText();
     }
 }

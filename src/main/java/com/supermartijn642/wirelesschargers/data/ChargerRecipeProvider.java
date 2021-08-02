@@ -1,12 +1,12 @@
 package com.supermartijn642.wirelesschargers.data;
 
 import com.supermartijn642.wirelesschargers.ChargerType;
-import net.minecraft.data.IFinishedRecipe;
-import net.minecraft.data.RecipeProvider;
-import net.minecraft.data.ShapedRecipeBuilder;
-import net.minecraft.item.Items;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.Tags;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 
 import java.util.function.Consumer;
 
@@ -20,7 +20,7 @@ public class ChargerRecipeProvider extends RecipeProvider {
     }
 
     @Override
-    protected void buildShapelessRecipes(Consumer<IFinishedRecipe> recipeConsumer){
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> recipeConsumer){
         // Basic wireless block charger
         ShapedRecipeBuilder.shaped(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem())
             .pattern(" A ")

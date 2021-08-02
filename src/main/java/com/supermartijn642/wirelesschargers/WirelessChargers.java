@@ -4,15 +4,15 @@ import com.supermartijn642.core.network.PacketChannel;
 import com.supermartijn642.wirelesschargers.data.*;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
@@ -22,7 +22,7 @@ public class WirelessChargers {
 
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
 
-    public static final ItemGroup GROUP = new ItemGroup("wirelesschargers") {
+    public static final CreativeModeTab GROUP = new CreativeModeTab("wirelesschargers") {
         @Override
         public ItemStack makeIcon(){
             return new ItemStack(ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER.getItem());
@@ -44,7 +44,7 @@ public class WirelessChargers {
         }
 
         @SubscribeEvent
-        public static void onTileEntityRegistry(RegistryEvent.Register<TileEntityType<?>> e){
+        public static void onTileEntityRegistry(RegistryEvent.Register<BlockEntityType<?>> e){
             for(ChargerType type : ChargerType.values())
                 type.registerTileEntity(e.getRegistry());
         }

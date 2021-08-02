@@ -11,7 +11,9 @@
       "conditions": {
         "items": [
           {
-            "item": "wirelesschargers:basic_wireless_block_charger"
+            "items": [
+              "wirelesschargers:basic_wireless_block_charger"
+            ]
           }
         ]
       }

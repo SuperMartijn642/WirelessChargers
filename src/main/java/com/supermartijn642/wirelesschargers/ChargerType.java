@@ -1,9 +1,11 @@
 package com.supermartijn642.wirelesschargers;
 
-import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Locale;
@@ -19,7 +21,7 @@ public enum ChargerType {
     BASIC_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.basicPlayerChargerRange, WirelessChargersConfig.basicPlayerChargerCapacity, WirelessChargersConfig.basicPlayerChargerTransferRate, ChargerModelType.BASIC_WIRELESS_PLAYER_CHARGER, "Basic Wireless Player Charger"),
     ADVANCED_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.advancedPlayerChargerRange, WirelessChargersConfig.advancedPlayerChargerCapacity, WirelessChargersConfig.advancedPlayerChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_PLAYER_CHARGER, "Advanced Wireless Player Charger");
 
-    private TileEntityType<ChargerBlockEntity> tileEntityType;
+    private BlockEntityType<ChargerBlockEntity> tileEntityType;
     private ChargerBlock block;
     private BlockItem item;
     public final boolean canChargeBlocks, canChargePlayers;
@@ -45,11 +47,11 @@ public enum ChargerType {
         return this.block;
     }
 
-    public ChargerBlockEntity createTileEntity(){
-        return new ChargerBlockEntity(this);
+    public ChargerBlockEntity createTileEntity(BlockPos pos, BlockState state){
+        return new ChargerBlockEntity(this, pos, state);
     }
 
-    public TileEntityType<ChargerBlockEntity> getTileEntityType(){
+    public BlockEntityType<ChargerBlockEntity> getTileEntityType(){
         return this.tileEntityType;
     }
 
@@ -65,13 +67,13 @@ public enum ChargerType {
         registry.register(this.block);
     }
 
-    public void registerTileEntity(IForgeRegistry<TileEntityType<?>> registry){
+    public void registerTileEntity(IForgeRegistry<BlockEntityType<?>> registry){
         if(this.tileEntityType != null)
             throw new IllegalStateException("Tile entities have already been registered!");
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering tile entity types!");
 
-        this.tileEntityType = TileEntityType.Builder.of(this::createTileEntity, this.block).build(null);
+        this.tileEntityType = BlockEntityType.Builder.of(this::createTileEntity, this.block).build(null);
         this.tileEntityType.setRegistryName(this.getRegistryName() + "_block_entity");
         registry.register(this.tileEntityType);
     }
@@ -82,7 +84,7 @@ public enum ChargerType {
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering items!");
 
-        this.item = new BlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP).setISTER(() -> () -> ChargerItemStackBlockEntityRenderer.INSTANCE));
+        this.item = new ChargerBlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP));
         this.item.setRegistryName(this.block.getRegistryName());
         registry.register(this.item);
     }

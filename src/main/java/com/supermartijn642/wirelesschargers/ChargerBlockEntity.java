@@ -1,16 +1,16 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BaseTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileEntity, IEnergyStorage {
+public class ChargerBlockEntity extends BaseTileEntity implements IEnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
@@ -47,13 +47,13 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     public int renderingTickCount = 0;
     public float renderingRotationSpeed, renderingRotation;
 
-    public ChargerBlockEntity(ChargerType type){
-        super(type.getTileEntityType());
+    public ChargerBlockEntity(ChargerType type, BlockPos pos, BlockState state){
+        super(type.getTileEntityType(), pos, state);
         this.type = type;
     }
 
-    @Override
     public void tick(){
+        this.energy = this.type.capacity.get();
         this.renderingTickCount++;
 
         if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
@@ -74,7 +74,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
                 BlockPos pos = this.worldPosition.offset(offset);
 
                 if(!pos.equals(this.worldPosition)){
-                    TileEntity entity = this.level.getBlockEntity(pos);
+                    BlockEntity entity = this.level.getBlockEntity(pos);
                     boolean canAcceptEnergy = false;
                     for(Direction direction : CAPABILITY_DIRECTIONS){
                         if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(CapabilityEnergy.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
@@ -105,7 +105,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
             if(this.energy > 0){
                 Set<BlockPos> toRemove = new HashSet<>();
                 for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                    TileEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
+                    BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
                     LazyOptional<IEnergyStorage> optional;
                     if(tile != null && (optional = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())).isPresent()){
                         final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
@@ -125,11 +125,11 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
         }
 
         if(this.type.canChargePlayers && this.energy > 0){
-            List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, this.getOperatingArea());
+            List<Player> players = this.level.getEntitiesOfClass(Player.class, this.getOperatingArea());
             loop:
-            for(PlayerEntity player : players){
+            for(Player player : players){
                 int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                PlayerInventory inventory = player.inventory;
+                Inventory inventory = player.getInventory();
                 for(int i = 0; i < inventory.getContainerSize(); i++){
                     ItemStack stack = inventory.getItem(i);
                     if(!stack.isEmpty()){
@@ -155,7 +155,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
             double x = this.worldPosition.getX() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
             double y = this.worldPosition.getY() + 0.7 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
             double z = this.worldPosition.getZ() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            this.level.addParticle(RedstoneParticleData.REDSTONE, x, y, z, 0.0D, 0.0D, 0.0D);
+            this.level.addParticle(DustParticleOptions.REDSTONE, x, y, z, 0.0D, 0.0D, 0.0D);
         }
     }
 
@@ -163,8 +163,8 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
         return Math.min(1, Math.max(0, (float)this.energy / this.type.capacity.get()));
     }
 
-    public AxisAlignedBB getOperatingArea(){
-        return new AxisAlignedBB(this.worldPosition).inflate(this.type.range.get());
+    public AABB getOperatingArea(){
+        return new AABB(this.worldPosition).inflate(this.type.range.get());
     }
 
     public void setRedstonePowered(boolean powered){
@@ -193,8 +193,8 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    protected CompoundNBT writeData(){
-        CompoundNBT compound = new CompoundNBT();
+    protected CompoundTag writeData(){
+        CompoundTag compound = new CompoundTag();
         compound.putInt("energy", this.energy);
         compound.putBoolean("highlightArea", this.highlightArea);
         compound.putInt("redstoneMode", this.redstoneMode.index);
@@ -218,8 +218,8 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    public CompoundNBT writeItemStackData(){
-        CompoundNBT compound = this.writeData();
+    public CompoundTag writeItemStackData(){
+        CompoundTag compound = this.writeData();
         if(compound.getInt("energy") <= 0 && compound.getInt("redstoneMode") == 2)
             return null;
 
@@ -235,7 +235,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    protected void readData(CompoundNBT compound){
+    protected void readData(CompoundTag compound){
         this.energy = compound.getInt("energy");
         this.highlightArea = compound.getBoolean("highlightArea");
         this.redstoneMode = RedstoneMode.fromIndex(compound.getInt("redstoneMode"));
@@ -304,8 +304,8 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     }
 
     @Override
-    public AxisAlignedBB getRenderBoundingBox(){
-        return this.highlightArea ? this.getOperatingArea() : new AxisAlignedBB(this.worldPosition);
+    public AABB getRenderBoundingBox(){
+        return this.highlightArea ? this.getOperatingArea() : new AABB(this.worldPosition);
     }
 
     public enum RedstoneMode {

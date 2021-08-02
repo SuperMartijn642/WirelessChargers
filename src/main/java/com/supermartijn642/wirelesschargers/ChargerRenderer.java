@@ -1,19 +1,18 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Quaternion;
 import com.supermartijn642.core.ClientUtils;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderState;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 import java.util.Random;
@@ -21,17 +20,13 @@ import java.util.Random;
 /**
  * Created 7/9/2021 by SuperMartijn642
  */
-public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
+public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> {
 
-    public static final RenderType AREA_HIGHLIGHT_RENDER_TYPE = RenderType.create("wireless_charger_area_highlight", DefaultVertexFormats.POSITION_COLOR, 7, 256, false, true, RenderTypeExtension.getAreaHighlightCompositeState());
-
-    public ChargerRenderer(TileEntityRendererDispatcher rendererDispatcher){
-        super(rendererDispatcher);
-    }
+    public static final RenderType AREA_HIGHLIGHT_RENDER_TYPE = RenderType.create("wireless_charger_area_highlight", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, true, RenderTypeExtension.getAreaHighlightCompositeState());
 
     @Override
-    public void render(ChargerBlockEntity entity, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer bufferSource, int combinedLight, int combinedOverlay){
-        IBakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(entity.type.modelType.ringModel);
+    public void render(ChargerBlockEntity entity, float partialTicks, PoseStack matrixStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay){
+        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(entity.type.modelType.ringModel);
 
         matrixStack.pushPose();
         matrixStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
@@ -54,11 +49,11 @@ public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
             renderAreaHighlight(entity, matrixStack, bufferSource);
     }
 
-    public static void renderAreaHighlight(ChargerBlockEntity entity, MatrixStack matrixStack, IRenderTypeBuffer bufferSource){
-        AxisAlignedBB area = entity.getOperatingArea().move(-entity.getBlockPos().getX(), -entity.getBlockPos().getY(), -entity.getBlockPos().getZ()).inflate(0.05);
+    public static void renderAreaHighlight(ChargerBlockEntity entity, PoseStack matrixStack, MultiBufferSource bufferSource){
+        AABB area = entity.getOperatingArea().move(-entity.getBlockPos().getX(), -entity.getBlockPos().getY(), -entity.getBlockPos().getZ()).inflate(0.05);
 
         Matrix4f matrix = matrixStack.last().pose();
-        IVertexBuilder vertexConsumer = bufferSource.getBuffer(AREA_HIGHLIGHT_RENDER_TYPE);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(AREA_HIGHLIGHT_RENDER_TYPE);
 
         float minX = (float)area.minX, maxX = (float)area.maxX;
         float minY = (float)area.minY, maxY = (float)area.maxY;
@@ -107,18 +102,18 @@ public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
     // Just need this to access protected fields
     private static class RenderTypeExtension extends RenderType {
 
-        public RenderTypeExtension(String p_i225992_1_, VertexFormat p_i225992_2_, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable p_i225992_7_, Runnable p_i225992_8_){
-            super(p_i225992_1_, p_i225992_2_, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, p_i225992_7_, p_i225992_8_);
+        public RenderTypeExtension(String p_173178_, VertexFormat p_173179_, VertexFormat.Mode p_173180_, int p_173181_, boolean p_173182_, boolean p_173183_, Runnable p_173184_, Runnable p_173185_){
+            super(p_173178_, p_173179_, p_173180_, p_173181_, p_173182_, p_173183_, p_173184_, p_173185_);
         }
 
-        public static RenderType.State getAreaHighlightCompositeState(){
-            return RenderType.State.builder()
-                .setAlphaState(DEFAULT_ALPHA)
-                .setTransparencyState(RenderState.TRANSLUCENT_TRANSPARENCY)
+        public static RenderType.CompositeState getAreaHighlightCompositeState(){
+            return RenderType.CompositeState.builder()
+                .setShaderState(POSITION_COLOR_SHADER)
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
                 .setTextureState(NO_TEXTURE)
                 .setCullState(NO_CULL)
-                .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
-                .setWriteMaskState(RenderState.COLOR_WRITE)
+                .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                .setWriteMaskState(RenderStateShard.COLOR_WRITE)
                 .createCompositeState(false);
         }
     }

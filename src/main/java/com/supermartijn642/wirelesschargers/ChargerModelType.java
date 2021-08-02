@@ -1,7 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BlockShape;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Created 7/30/2021 by SuperMartijn642
