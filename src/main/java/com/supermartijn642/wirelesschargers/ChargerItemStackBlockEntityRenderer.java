@@ -22,6 +22,10 @@ public class ChargerItemStackBlockEntityRenderer extends ItemStackTileEntityRend
 
     public static final ChargerItemStackBlockEntityRenderer INSTANCE = new ChargerItemStackBlockEntityRenderer();
 
+    public static ChargerItemStackBlockEntityRenderer getInstance(){
+        return INSTANCE;
+    }
+
     private ChargerItemStackBlockEntityRenderer(){
     }
 
