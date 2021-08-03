@@ -82,7 +82,7 @@ public enum ChargerType {
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering items!");
 
-        this.item = new BlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP).setTEISR(() -> () -> ChargerItemStackBlockEntityRenderer.INSTANCE));
+        this.item = new BlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP).setTEISR(() -> ChargerItemStackBlockEntityRenderer::getInstance));
         this.item.setRegistryName(this.block.getRegistryName());
         registry.register(this.item);
     }
