@@ -1,7 +1,6 @@
 package com.supermartijn642.wirelesschargers.data;
 
 import com.supermartijn642.wirelesschargers.ChargerType;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 
