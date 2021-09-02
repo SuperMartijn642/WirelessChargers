@@ -19,7 +19,7 @@ public class WirelessChargers {
 
     public static final String MODID = "wirelesschargers";
     public static final String NAME = "Wireless Chargers";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
     public static final String DEPENDENCIES = "required-after:supermartijn642corelib@[1.0.11,);required-after:supermartijn642configlib@[1.0.8,)";
 
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
