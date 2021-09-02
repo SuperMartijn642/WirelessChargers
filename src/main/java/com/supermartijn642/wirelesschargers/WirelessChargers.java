@@ -63,6 +63,7 @@ public class WirelessChargers {
             e.getGenerator().addProvider(new ChargerLootTableProvider(e));
             e.getGenerator().addProvider(new ChargerRecipeProvider(e));
             e.getGenerator().addProvider(new ChargerBlockTagsProvider(e));
+            e.getGenerator().addProvider(new ChargerAdvancementProvider(e));
         }
     }
 

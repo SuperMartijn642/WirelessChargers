@@ -1,0 +1,37 @@
+{
+  "parent": "wirelesschargers:wireless_charging",
+  "display": {
+    "icon": {
+      "item": "wirelesschargers:advanced_wireless_player_charger"
+    },
+    "title": {
+      "translate": "wirelesschargers.advancement.no_more_batteries.title"
+    },
+    "description": {
+      "translate": "wirelesschargers.advancement.no_more_batteries.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_charger": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "wirelesschargers:advanced_wireless_player_charger"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_charger"
+    ]
+  ]
+}

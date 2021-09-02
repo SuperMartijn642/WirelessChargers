@@ -31,6 +31,13 @@ public class ChargerLanguageProvider extends LanguageProvider {
         this.add("wirelesschargers.screen.redstone_low", "Low");
         this.add("wirelesschargers.screen.redstone_disabled", "Disabled");
 
+        this.add("wirelesschargers.advancement.wireless_charging.title", "Wireless Charging");
+        this.add("wirelesschargers.advancement.wireless_charging.description", "Craft a wireless charger");
+        this.add("wirelesschargers.advancement.no_more_batteries.title", "No More Batteries");
+        this.add("wirelesschargers.advancement.no_more_batteries.description", "Craft an advanced wireless player charger");
+        this.add("wirelesschargers.advancement.no_more_cables.title", "No More Cables");
+        this.add("wirelesschargers.advancement.no_more_cables.description", "Craft an advanced wireless block charger");
+
         for(ChargerType type : ChargerType.values())
             this.add(type.getBlock(), type.englishTranslation);
     }
