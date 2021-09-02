@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "forge:ore_shaped",
   "pattern": [
     " A ",
     "BCB",
@@ -7,10 +7,12 @@
   ],
   "key": {
     "A": {
-      "tag": "forge:dusts/glowstone"
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
     },
     "B": {
-      "tag": "forge:ingots/iron"
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
     },
     "C": {
       "item": "wirelesschargers:basic_wireless_block_charger"
@@ -19,7 +21,8 @@
       "item": "minecraft:blaze_powder"
     },
     "E": {
-      "tag": "forge:storage_blocks/redstone"
+      "type": "forge:ore_dict",
+      "ore": "blockRedstone"
     }
   },
   "result": {
