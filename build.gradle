@@ -86,8 +86,9 @@ dependencies {
 
     // Core lib
     implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3407566')
+//    implementation fg.deobf('com.supermartijn642.core:supermartijn642corelib:1.0.12-dev-mc1.14')
     // Config lib
-    implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3357664')
+    implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3413934')
 
     // Just Enough Items
     runtimeOnly fg.deobf('curse.maven:jei-238222:3039707')
