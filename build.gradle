@@ -53,6 +53,9 @@ minecraft {
 }
 
 repositories {
+    flatDir {
+        dirs 'libs'
+    }
     maven {
         url "https://www.cursemaven.com"
     }
@@ -63,8 +66,9 @@ dependencies {
 
     // Core lib
     implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3407565')
+//    implementation 'com.supermartijn642.core:supermartijn642corelib:1.0.12-dev-mc1.12'
     // Config lib
-    implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3357662')
+    implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3413933')
 }
 
 sourceSets {
