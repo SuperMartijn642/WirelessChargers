@@ -284,6 +284,13 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEn
     }
 
     @Override
+    public boolean hasCapability(Capability<?> cap, @Nullable EnumFacing side){
+        if(cap == CapabilityEnergy.ENERGY && side != EnumFacing.UP)
+            return true;
+        return super.hasCapability(cap, side);
+    }
+
+    @Override
     public <T> T getCapability(@Nonnull Capability<T> cap, @Nullable EnumFacing side){
         if(cap == CapabilityEnergy.ENERGY && side != EnumFacing.UP)
             return CapabilityEnergy.ENERGY.cast(this);
