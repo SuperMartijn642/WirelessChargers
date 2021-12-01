@@ -11,7 +11,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ForgeModelBakery;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -30,7 +30,7 @@ public class ClientProxy {
     @SubscribeEvent
     public static void onModelRegistry(ModelRegistryEvent e){
         for(ChargerModelType type : ChargerModelType.values())
-            ModelLoader.addSpecialModel(type.ringModel);
+            ForgeModelBakery.addSpecialModel(type.ringModel);
     }
 
     @SubscribeEvent
