@@ -65,9 +65,12 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2855'
 
     // Core lib
-    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3524845')
+    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3612379')
     // Config lib
     implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3413933')
+
+    // Baubles
+    implementation fg.deobf('curse.maven:baubles-227083:2518667')
 }
 
 sourceSets {

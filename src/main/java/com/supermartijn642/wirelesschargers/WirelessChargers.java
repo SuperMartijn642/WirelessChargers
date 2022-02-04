@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.network.PacketChannel;
+import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
 import net.minecraft.block.Block;
@@ -9,6 +10,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 /**
@@ -34,6 +36,11 @@ public class WirelessChargers {
     public WirelessChargers(){
         CHANNEL.registerMessage(ToggleHighlightAreaPacket.class, ToggleHighlightAreaPacket::new, true);
         CHANNEL.registerMessage(CycleRedstoneModePacket.class, CycleRedstoneModePacket::new, true);
+    }
+
+    @Mod.EventHandler
+    public static void onInit(FMLInitializationEvent e){
+        ModCompatibility.init(e);
     }
 
     @Mod.EventBusSubscriber

@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BaseTileEntity;
+import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
@@ -14,6 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -151,11 +153,35 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEn
             }
         }
 
+        // Charge players' items
         if(this.type.canChargePlayers && this.energy > 0){
             List<EntityPlayer> players = this.world.getEntitiesWithinAABB(EntityPlayer.class, this.getOperatingArea());
             loop:
             for(EntityPlayer player : players){
                 int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                // Check Curios/Baubles slots
+                IItemHandlerModifiable handler = ModCompatibility.baubles.getCuriosStacks(player);
+                for(int i = 0; i < handler.getSlots(); i++){
+                    ItemStack stack = handler.getStackInSlot(i);
+                    if(!stack.isEmpty()){
+                        IEnergyStorage capability = stack.getCapability(CapabilityEnergy.ENERGY, null);
+                        if(capability != null){
+                            final int max = toTransfer;
+                            int transferred = capability.receiveEnergy(max, false);
+                            if(transferred > 0){
+                                handler.setStackInSlot(i, stack);
+                                spawnParticles = true;
+                                this.energy -= transferred;
+                                this.dataChanged();
+                                if(this.energy <= 0)
+                                    break loop;
+                                toTransfer -= transferred;
+                                if(toTransfer <= 0)
+                                    continue loop;
+                            }
+                        }
+                    }
+                }
                 InventoryPlayer inventory = player.inventory;
                 for(int i = 0; i < inventory.getSizeInventory(); i++){
                     ItemStack stack = inventory.getStackInSlot(i);
@@ -165,6 +191,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEn
                             final int max = toTransfer;
                             int transferred = capability.receiveEnergy(max, false);
                             if(transferred > 0){
+                                inventory.setInventorySlotContents(i, stack);
                                 spawnParticles = true;
                                 this.energy -= transferred;
                                 this.dataChanged();
