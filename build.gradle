@@ -79,10 +79,14 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.0'
 
-    // Core lib
-    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3524851')
-    // Config lib
+    // Core Lib
+    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3596490')
+    // Config Lib
     implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3413938')
+
+    // Curios
+    compileOnly fg.deobf('curse.maven:curios-api-309927:3613041')
+    runtimeOnly fg.deobf('curse.maven:curios-309927:3613039')
 
     // Just Enough Items
     runtimeOnly fg.deobf('curse.maven:jei-238222:3373521')
