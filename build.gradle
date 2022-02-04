@@ -55,8 +55,6 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
 
-//            property 'forge.logging.console.level', 'debug'
-
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             args '--mod', 'wirelesschargers', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
@@ -85,9 +83,13 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.15.2-31.2.55'
 
     // Core lib
-    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3524849')
+    implementation fg.deobf('curse.maven:supermartijn642s-core-lib-454372:3596461')
     // Config lib
     implementation fg.deobf('curse.maven:supermartijn642s-config-lib-438332:3413935')
+
+    // Curios
+    compileOnly fg.deobf('curse.maven:curios-api-309927:3168993')
+    runtimeOnly fg.deobf('curse.maven:curios-309927:3168991')
 
     // Just Enough Items
     runtimeOnly fg.deobf('curse.maven:jei-238222:3272032')
