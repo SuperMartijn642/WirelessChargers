@@ -15,7 +15,7 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'eclipse'
 apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 
-version = '1.0.4-mc1.18'
+version = '1.0.5-mc1.18'
 group = 'com.supermartijn642.wirelesschargers' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'wirelesschargers'
 
