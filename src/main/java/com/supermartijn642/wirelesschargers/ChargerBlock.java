@@ -30,6 +30,7 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -80,7 +81,7 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> entityType){
-        return entityType.getRegistryName().getNamespace().equals("wirelesschargers") ?
+        return ForgeRegistries.BLOCK_ENTITIES.getKey(entityType).getNamespace().equals("wirelesschargers") ?
             (world2, pos, state2, entity) -> ((ChargerBlockEntity)entity).tick() : null;
     }
 

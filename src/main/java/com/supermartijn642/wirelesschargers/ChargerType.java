@@ -64,7 +64,7 @@ public enum ChargerType {
             throw new IllegalStateException("Blocks have already been registered!");
 
         this.block = new ChargerBlock(this);
-        registry.register(this.block);
+        registry.register(this.getRegistryName(), this.block);
     }
 
     public void registerTileEntity(IForgeRegistry<BlockEntityType<?>> registry){
@@ -74,8 +74,7 @@ public enum ChargerType {
             throw new IllegalStateException("Blocks must be registered before registering tile entity types!");
 
         this.tileEntityType = BlockEntityType.Builder.of(this::createTileEntity, this.block).build(null);
-        this.tileEntityType.setRegistryName(this.getRegistryName() + "_block_entity");
-        registry.register(this.tileEntityType);
+        registry.register(this.getRegistryName() + "_block_entity", this.tileEntityType);
     }
 
     public void registerItem(IForgeRegistry<Item> registry){
@@ -85,7 +84,6 @@ public enum ChargerType {
             throw new IllegalStateException("Blocks must be registered before registering items!");
 
         this.item = new ChargerBlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP));
-        this.item.setRegistryName(this.block.getRegistryName());
-        registry.register(this.item);
+        registry.register(this.getRegistryName(), this.item);
     }
 }

@@ -1,10 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " A ",
-    "BCB",
-    "DED"
-  ],
   "key": {
     "A": {
       "tag": "forge:dusts/glowstone"
@@ -22,6 +17,11 @@
       "tag": "forge:storage_blocks/redstone"
     }
   },
+  "pattern": [
+    " A ",
+    "BCB",
+    "DED"
+  ],
   "result": {
     "item": "wirelesschargers:advanced_wireless_player_charger"
   }

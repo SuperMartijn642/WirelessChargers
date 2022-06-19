@@ -36,7 +36,7 @@ public class ChargerLootTableProvider extends LootTableProvider {
         BlockLoot lootTables = new BlockLoot() {
             @Override
             protected Iterable<Block> getKnownBlocks(){
-                return ForgeRegistries.BLOCKS.getValues().stream().filter(block -> block.getRegistryName().getNamespace().equals("wirelesschargers")).collect(Collectors.toList());
+                return ForgeRegistries.BLOCKS.getEntries().stream().filter(entry -> entry.getKey().location().getNamespace().equals("wirelesschargers")).map(Map.Entry::getValue).collect(Collectors.toList());
             }
 
             @Override

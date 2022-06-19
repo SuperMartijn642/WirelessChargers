@@ -10,11 +10,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.RegisterEvent;
+
+import java.util.Objects;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
@@ -42,32 +46,39 @@ public class WirelessChargers {
     public static class ModEvents {
 
         @SubscribeEvent
-        public static void onBlockRegistry(RegistryEvent.Register<Block> e){
-            for(ChargerType type : ChargerType.values())
-                type.registerBlock(e.getRegistry());
+        public static void onRegisterEvent(RegisterEvent e){
+            if(e.getRegistryKey().equals(ForgeRegistries.Keys.BLOCKS))
+                onBlockRegistry(Objects.requireNonNull(e.getForgeRegistry()));
+            else if(e.getRegistryKey().equals(ForgeRegistries.Keys.BLOCK_ENTITY_TYPES))
+                onTileEntityRegistry(Objects.requireNonNull(e.getForgeRegistry()));
+            else if(e.getRegistryKey().equals(ForgeRegistries.Keys.ITEMS))
+                onItemRegistry(Objects.requireNonNull(e.getForgeRegistry()));
         }
 
-        @SubscribeEvent
-        public static void onTileEntityRegistry(RegistryEvent.Register<BlockEntityType<?>> e){
+        public static void onBlockRegistry(IForgeRegistry<Block> registry){
             for(ChargerType type : ChargerType.values())
-                type.registerTileEntity(e.getRegistry());
+                type.registerBlock(registry);
         }
 
-        @SubscribeEvent
-        public static void onItemRegistry(RegistryEvent.Register<Item> e){
+        public static void onTileEntityRegistry(IForgeRegistry<BlockEntityType<?>> registry){
             for(ChargerType type : ChargerType.values())
-                type.registerItem(e.getRegistry());
+                type.registerTileEntity(registry);
+        }
+
+        public static void onItemRegistry(IForgeRegistry<Item> registry){
+            for(ChargerType type : ChargerType.values())
+                type.registerItem(registry);
         }
 
         @SubscribeEvent
         public static void onGatherData(GatherDataEvent e){
-            e.getGenerator().addProvider(new ChargerItemModelProvider(e));
-            e.getGenerator().addProvider(new ChargerBlockStateProvider(e));
-            e.getGenerator().addProvider(new ChargerLanguageProvider(e));
-            e.getGenerator().addProvider(new ChargerLootTableProvider(e));
-            e.getGenerator().addProvider(new ChargerRecipeProvider(e));
-            e.getGenerator().addProvider(new ChargerBlockTagsProvider(e));
-            e.getGenerator().addProvider(new ChargerAdvancementProvider(e));
+            e.getGenerator().addProvider(e.includeClient(), new ChargerItemModelProvider(e));
+            e.getGenerator().addProvider(e.includeClient(), new ChargerBlockStateProvider(e));
+            e.getGenerator().addProvider(e.includeClient(), new ChargerLanguageProvider(e));
+            e.getGenerator().addProvider(e.includeServer(), new ChargerLootTableProvider(e));
+            e.getGenerator().addProvider(e.includeServer(), new ChargerRecipeProvider(e));
+            e.getGenerator().addProvider(e.includeServer(), new ChargerBlockTagsProvider(e));
+            e.getGenerator().addProvider(e.includeServer(), new ChargerAdvancementProvider(e));
         }
     }
 
