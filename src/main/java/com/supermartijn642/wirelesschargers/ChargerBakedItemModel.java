@@ -20,8 +20,8 @@ public class ChargerBakedItemModel extends BakedModelWrapper<BakedModel> {
     }
 
     @Override
-    public BakedModel handlePerspective(ItemTransforms.TransformType cameraTransformType, PoseStack mat){
-        super.handlePerspective(cameraTransformType, mat);
+    public BakedModel applyTransform(ItemTransforms.TransformType cameraTransformType, PoseStack mat, boolean applyLeftHandTransform){
+        super.applyTransform(cameraTransformType, mat, applyLeftHandTransform);
         return this;
     }
 }

@@ -8,8 +8,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.model.data.EmptyModelData;
+import net.minecraftforge.client.model.data.ModelData;
 
 import java.util.Random;
 
@@ -27,15 +28,22 @@ public class ChargerRenderer implements BlockEntityRenderer<ChargerBlockEntity> 
         matrixStack.mulPose(new Quaternion(0, (entity.renderingRotation + entity.renderingRotationSpeed * partialTicks) / 3, 0, false));
         matrixStack.translate(-0.5, 0, -0.5);
 
-        ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-            matrixStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay, EmptyModelData.INSTANCE
-        );
+        RandomSource randomsource = RandomSource.create();
+        randomsource.setSeed(42);
+        for(RenderType renderType : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
+            ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
+                matrixStack.last(), bufferSource.getBuffer(renderType), entity.getBlockState(), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, renderType
+            );
+        }
 
         matrixStack.translate(0, entity.type.modelType.ringYOffset, 0);
 
-        ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-            matrixStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay, EmptyModelData.INSTANCE
-        );
+        randomsource.setSeed(42);
+        for(RenderType renderType : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
+            ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
+                matrixStack.last(), bufferSource.getBuffer(renderType), entity.getBlockState(), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, renderType
+            );
+        }
 
         matrixStack.popPose();
 

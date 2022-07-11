@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.supermartijn642.core.ClientUtils;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -43,19 +42,11 @@ public class ChargerItemStackBlockEntityRenderer extends BlockEntityWithoutLevel
     private static void renderDefaultItem(ItemStack itemStack, PoseStack matrixStack, ItemTransforms.TransformType cameraTransform, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, BakedModel model){
         ItemRenderer renderer = ClientUtils.getMinecraft().getItemRenderer();
 
-        matrixStack.pushPose();
-
-        if(model.isLayered()){
-            net.minecraftforge.client.ForgeHooksClient.drawItemLayered(renderer, model, itemStack, matrixStack, bufferSource, combinedLight, combinedOverlay, true);
-        }else{
-            RenderType rendertype = ItemBlockRenderTypes.getRenderType(itemStack, true);
-            VertexConsumer ivertexbuilder;
-
-            ivertexbuilder = ItemRenderer.getFoilBuffer(bufferSource, rendertype, true, itemStack.hasFoil());
-
-            renderer.renderModelLists(model, itemStack, combinedLight, combinedOverlay, matrixStack, ivertexbuilder);
+        for(BakedModel passModel : model.getRenderPasses(itemStack, true)){
+            for(RenderType renderType : passModel.getRenderTypes(itemStack, true)){
+                VertexConsumer vertexConsumer = ItemRenderer.getFoilBufferDirect(bufferSource, renderType, true, itemStack.hasFoil());
+                renderer.renderModelLists(passModel, itemStack, combinedLight, combinedOverlay, matrixStack, vertexConsumer);
+            }
         }
-
-        matrixStack.popPose();
     }
 }

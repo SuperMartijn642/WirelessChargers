@@ -9,9 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ModelBakeEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ForgeModelBakery;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -28,19 +26,19 @@ public class ClientProxy {
     }
 
     @SubscribeEvent
-    public static void onModelRegistry(ModelRegistryEvent e){
+    public static void onModelRegistry(ModelEvent.RegisterAdditional e){
         for(ChargerModelType type : ChargerModelType.values())
-            ForgeModelBakery.addSpecialModel(type.ringModel);
+            e.register(type.ringModel);
     }
 
     @SubscribeEvent
-    public static void onModelBake(ModelBakeEvent e){
+    public static void onModelBake(ModelEvent.BakingCompleted e){
         // replace the reservoir item models
         for(ChargerType type : ChargerType.values()){
             ResourceLocation location = new ModelResourceLocation("wirelesschargers:" + type.getRegistryName(), "inventory");
-            BakedModel model = e.getModelRegistry().get(location);
+            BakedModel model = e.getModels().get(location);
             if(model != null)
-                e.getModelRegistry().put(location, new ChargerBakedItemModel(model));
+                e.getModels().put(location, new ChargerBakedItemModel(model));
         }
     }
 
