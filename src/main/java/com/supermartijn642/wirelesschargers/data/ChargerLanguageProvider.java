@@ -2,7 +2,7 @@ package com.supermartijn642.wirelesschargers.data;
 
 import com.supermartijn642.wirelesschargers.ChargerType;
 import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 
 /**
  * Created 7/8/2021 by SuperMartijn642

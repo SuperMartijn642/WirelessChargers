@@ -3,7 +3,7 @@ package com.supermartijn642.wirelesschargers.data;
 import com.supermartijn642.wirelesschargers.ChargerType;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.tags.BlockTags;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 
 /**
  * Created 8/3/2021 by SuperMartijn642

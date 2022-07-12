@@ -81,7 +81,7 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> entityType){
-        return ForgeRegistries.BLOCK_ENTITIES.getKey(entityType).getNamespace().equals("wirelesschargers") ?
+        return ForgeRegistries.BLOCK_ENTITY_TYPES.getKey(entityType).getNamespace().equals("wirelesschargers") ?
             (world2, pos, state2, entity) -> ((ChargerBlockEntity)entity).tick() : null;
     }
 
