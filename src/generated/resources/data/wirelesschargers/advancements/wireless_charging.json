@@ -1,6 +1,23 @@
 {
+  "display": {
+    "icon": {
+      "item": "wirelesschargers:basic_wireless_player_charger"
+    },
+    "title": {
+      "translate": "wirelesschargers.advancement.wireless_charging.title"
+    },
+    "description": {
+      "translate": "wirelesschargers.advancement.wireless_charging.description"
+    },
+    "frame": "task",
+    "background": "minecraft:block/redstone_block",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
   "criteria": {
     "has_block_charger": {
+      "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
@@ -9,10 +26,10 @@
             ]
           }
         ]
-      },
-      "trigger": "minecraft:inventory_changed"
+      }
     },
     "has_player_charger": {
+      "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
@@ -21,24 +38,7 @@
             ]
           }
         ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    }
-  },
-  "display": {
-    "announce_to_chat": true,
-    "background": "minecraft:textures/block/redstone_block.png",
-    "description": {
-      "translate": "wirelesschargers.advancement.wireless_charging.description"
-    },
-    "frame": "task",
-    "hidden": false,
-    "icon": {
-      "item": "wirelesschargers:basic_wireless_player_charger"
-    },
-    "show_toast": true,
-    "title": {
-      "translate": "wirelesschargers.advancement.wireless_charging.title"
+      }
     }
   },
   "requirements": [

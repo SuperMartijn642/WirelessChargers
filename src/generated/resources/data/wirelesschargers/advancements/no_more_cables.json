@@ -1,7 +1,23 @@
 {
   "parent": "wirelesschargers:wireless_charging",
+  "display": {
+    "icon": {
+      "item": "wirelesschargers:advanced_wireless_block_charger"
+    },
+    "title": {
+      "translate": "wirelesschargers.advancement.no_more_cables.title"
+    },
+    "description": {
+      "translate": "wirelesschargers.advancement.no_more_cables.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
   "criteria": {
     "has_charger": {
+      "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
@@ -10,23 +26,7 @@
             ]
           }
         ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    }
-  },
-  "display": {
-    "announce_to_chat": true,
-    "description": {
-      "translate": "wirelesschargers.advancement.no_more_cables.description"
-    },
-    "frame": "task",
-    "hidden": false,
-    "icon": {
-      "item": "wirelesschargers:advanced_wireless_block_charger"
-    },
-    "show_toast": true,
-    "title": {
-      "translate": "wirelesschargers.advancement.no_more_cables.title"
+      }
     }
   },
   "requirements": [

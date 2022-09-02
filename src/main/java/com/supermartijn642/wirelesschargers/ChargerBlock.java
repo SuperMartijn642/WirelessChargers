@@ -3,48 +3,45 @@ package com.supermartijn642.wirelesschargers;
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.block.BaseBlock;
+import com.supermartijn642.core.block.BlockProperties;
+import com.supermartijn642.core.block.EntityHoldingBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.Material;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterloggedBlock {
+public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, SimpleWaterloggedBlock {
 
     public final ChargerType type;
 
     public ChargerBlock(ChargerType type){
-        super(type.getRegistryName(), true, Properties.of(Material.METAL, DyeColor.GRAY).strength(2f));
+        super(true, BlockProperties.create(Material.METAL, DyeColor.GRAY).destroyTime(2).explosionResistance(2));
         this.type = type;
 
         this.registerDefaultState(this.defaultBlockState().setValue(BlockStateProperties.WATERLOGGED, false));
@@ -72,17 +69,9 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
         return state.getValue(BlockStateProperties.WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
     }
 
-    @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state){
-        return this.type.createTileEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> entityType){
-        return ForgeRegistries.BLOCK_ENTITY_TYPES.getKey(entityType).getNamespace().equals("wirelesschargers") ?
-            (world2, pos, state2, entity) -> ((ChargerBlockEntity)entity).tick() : null;
+    public BlockEntity createNewBlockEntity(BlockPos pos, BlockState state){
+        return this.type.createBlockEntity(pos, state);
     }
 
     @Override
@@ -91,30 +80,30 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult rayTraceResult){
-        if(world.isClientSide)
-            ClientProxy.openChargerScreen(TextComponents.block(this).get(), pos);
-        return InteractionResult.sidedSuccess(world.isClientSide);
+    protected InteractionFeedback interact(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, Direction hitSide, Vec3 hitLocation){
+        if(level.isClientSide)
+            WirelessChargersClient.openChargerScreen(TextComponents.block(this).get(), level, pos);
+        return InteractionFeedback.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter world, List<Component> list, TooltipFlag flag){
+    protected void appendItemInformation(ItemStack stack, BlockGetter level, Consumer<Component> info, boolean advanced){
         Component range = TextComponents.number(this.type.range.get() * 2 + 1).color(ChatFormatting.GOLD).get();
 
         // blocks
         if(this.type.canChargeBlocks){
-            list.add(TextComponents.translation("wirelesschargers.charger.info.blocks", range).color(ChatFormatting.YELLOW).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.blocks", range).color(ChatFormatting.YELLOW).get());
 
             Component transferRate = TextComponents.string(EnergyFormat.formatEnergy(this.type.transferRate.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnitPerTick()).color(ChatFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_blocks", transferRate).color(ChatFormatting.GRAY).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_blocks", transferRate).color(ChatFormatting.GRAY).get());
         }
 
         // players
         if(this.type.canChargePlayers){
-            list.add(TextComponents.translation("wirelesschargers.charger.info.players", range).color(ChatFormatting.YELLOW).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.players", range).color(ChatFormatting.YELLOW).get());
 
             Component transferRate = TextComponents.string(EnergyFormat.formatEnergy(this.type.transferRate.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnitPerTick()).color(ChatFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_players", transferRate).color(ChatFormatting.GRAY).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_players", transferRate).color(ChatFormatting.GRAY).get());
         }
 
         // stored energy
@@ -122,7 +111,7 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
         if(energy > 0){
             Component energyText = TextComponents.string(EnergyFormat.formatEnergy(energy)).color(ChatFormatting.GOLD).get();
             Component capacity = TextComponents.string(EnergyFormat.formatEnergy(this.type.capacity.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(ChatFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.stored_energy", energyText, capacity).color(ChatFormatting.GRAY).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.stored_energy", energyText, capacity).color(ChatFormatting.GRAY).get());
         }
 
         // redstone mode
@@ -130,14 +119,14 @@ public class ChargerBlock extends BaseBlock implements EntityBlock, SimpleWaterl
         if(redstoneMode != 2){
             ChargerBlockEntity.RedstoneMode mode = ChargerBlockEntity.RedstoneMode.fromIndex(redstoneMode);
             Component value = TextComponents.translation("wirelesschargers.screen.redstone_" + mode.name().toLowerCase(Locale.ROOT)).color(ChatFormatting.GOLD).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.redstone_mode", value).color(ChatFormatting.GRAY).get());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.redstone_mode", value).color(ChatFormatting.GRAY).get());
         }
     }
 
-//    @Override TODO put this back once https://github.com/MinecraftForge/MinecraftForge/pull/7927 gets merged
-//    public boolean canRedstoneConnectTo(BlockState state, @Nullable Direction side){
-//        return side != Direction.UP;
-//    }
+    @Override
+    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, Direction direction){
+        return direction != Direction.UP;
+    }
 
     @Override
     public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos neighborPos, boolean p_220069_6_){
