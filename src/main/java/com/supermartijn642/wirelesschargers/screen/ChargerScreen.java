@@ -1,60 +1,58 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.supermartijn642.core.gui.TileEntityBaseScreen;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.supermartijn642.core.gui.ScreenUtils;
+import com.supermartijn642.core.gui.widget.BlockEntityBaseWidget;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
-
-import javax.annotation.Nonnull;
+import net.minecraft.world.World;
 
 /**
  * Created 7/30/2021 by SuperMartijn642
  */
-public class ChargerScreen extends TileEntityBaseScreen<ChargerBlockEntity> {
+public class ChargerScreen extends BlockEntityBaseWidget<ChargerBlockEntity> {
 
-    public ChargerScreen(ITextComponent title, BlockPos tilePos){
-        super(title, tilePos);
+    private final ITextComponent title;
+    private final BlockPos entityPos;
+
+    public ChargerScreen(ITextComponent title, World entityLevel, BlockPos entityPos){
+        super(0, 0, 66, 72, entityLevel, entityPos);
+        this.title = title;
+        this.entityPos = entityPos;
     }
 
     @Override
-    protected float sizeX(@Nonnull ChargerBlockEntity entity){
-        return 66;
+    public ITextComponent getNarrationMessage(ChargerBlockEntity object){
+        return this.title;
     }
 
     @Override
-    protected float sizeY(@Nonnull ChargerBlockEntity entity){
-        return 72;
-    }
-
-    @Override
-    protected void addWidgets(@Nonnull ChargerBlockEntity entity){
+    protected void addWidgets(ChargerBlockEntity entity){
         this.addWidget(new EnergyBarWidget(10, 10, 20, 52, this::getEnergy, this::getCapacity));
-        this.addWidget(new HighlightAreaButton(36, 11, this.tilePos, this::isAreaHighlighted));
-        this.addWidget(new RedstoneModeButton(36, 41, this.tilePos, this::getRedstoneMode));
+        this.addWidget(new HighlightAreaButton(36, 11, this.entityPos, this::isAreaHighlighted));
+        this.addWidget(new RedstoneModeButton(36, 41, this.entityPos, this::getRedstoneMode));
     }
 
     @Override
-    protected void render(int mouseX, int mouseY, @Nonnull ChargerBlockEntity entity){
-        this.drawScreenBackground();
+    protected void renderBackground(MatrixStack poseStack, int mouseX, int mouseY, ChargerBlockEntity object){
+        ScreenUtils.drawScreenBackground(poseStack, this.x, this.y, this.width, this.height);
+        super.renderBackground(poseStack, mouseX, mouseY, object);
     }
 
     private int getEnergy(){
-        ChargerBlockEntity entity = this.getObjectOrClose();
-        return entity == null ? 0 : entity.getEnergyStored();
+        return this.validateObjectOrClose() ? this.object.getEnergyStored() : 0;
     }
 
     private int getCapacity(){
-        ChargerBlockEntity entity = this.getObjectOrClose();
-        return entity == null ? 1 : entity.getMaxEnergyStored();
+        return this.validateObjectOrClose() ? this.object.getMaxEnergyStored() : 1;
     }
 
     private boolean isAreaHighlighted(){
-        ChargerBlockEntity entity = this.getObjectOrClose();
-        return entity != null && entity.isAreaHighlighted();
+        return this.validateObjectOrClose() && this.object.isAreaHighlighted();
     }
 
     private ChargerBlockEntity.RedstoneMode getRedstoneMode(){
-        ChargerBlockEntity entity = this.getObjectOrClose();
-        return entity == null ? ChargerBlockEntity.RedstoneMode.DISABLED : entity.getRedstoneMode();
+        return this.validateObjectOrClose() ? this.object.getRedstoneMode() : ChargerBlockEntity.RedstoneMode.DISABLED;
     }
 }
