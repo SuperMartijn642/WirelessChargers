@@ -1,13 +1,13 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.supermartijn642.core.block.BaseTileEntity;
+import com.supermartijn642.core.block.BaseBlockEntity;
+import com.supermartijn642.core.block.TickableBlockEntity;
 import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -25,7 +25,7 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileEntity, IEnergyStorage {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, IEnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
@@ -50,12 +50,12 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickableTileE
     public float renderingRotationSpeed, renderingRotation;
 
     public ChargerBlockEntity(ChargerType type){
-        super(type.getTileEntityType());
+        super(type.getBlockEntityType());
         this.type = type;
     }
 
     @Override
-    public void tick(){
+    public void update(){
         this.renderingTickCount++;
 
         if(!this.redstoneMode.canOperate(this.isRedstonePowered)){

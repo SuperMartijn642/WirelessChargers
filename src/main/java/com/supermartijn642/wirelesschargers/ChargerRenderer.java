@@ -2,10 +2,10 @@ package com.supermartijn642.wirelesschargers;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.supermartijn642.core.ClientUtils;
+import com.supermartijn642.core.render.CustomBlockEntityRenderer;
 import com.supermartijn642.core.render.RenderUtils;
 import net.minecraft.client.renderer.Quaternion;
 import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.util.math.AxisAlignedBB;
 
 import java.util.Random;
@@ -13,14 +13,11 @@ import java.util.Random;
 /**
  * Created 7/9/2021 by SuperMartijn642
  */
-public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
+public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEntity> {
 
     @Override
-    public void render(ChargerBlockEntity entity, double x, double y, double z, float partialTicks, int combinedLight){
+    public void render(ChargerBlockEntity entity, float partialTicks, int combinedOverlay){
         IBakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(entity.type.modelType.ringModel);
-
-        GlStateManager.pushMatrix();
-        GlStateManager.translated(x, y, z);
 
         GlStateManager.pushMatrix();
         GlStateManager.translated(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
@@ -50,10 +47,8 @@ public class ChargerRenderer extends TileEntityRenderer<ChargerBlockEntity> {
             float blue = random.nextFloat();
             float alpha = 0.2f;
 
-            RenderUtils.renderBox(area, red, green, blue);
-            RenderUtils.renderBoxSides(area, red, green, blue, alpha);
+            RenderUtils.renderBox(area, red, green, blue, true);
+            RenderUtils.renderBoxSides(area, red, green, blue, alpha, true);
         }
-
-        GlStateManager.popMatrix();
     }
 }
