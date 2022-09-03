@@ -1,25 +1,23 @@
 package com.supermartijn642.wirelesschargers.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
 import com.supermartijn642.core.gui.ScreenUtils;
-import com.supermartijn642.core.gui.widget.AbstractButtonWidget;
-import com.supermartijn642.core.gui.widget.IHoverTextWidget;
-import net.minecraft.client.Minecraft;
+import com.supermartijn642.core.gui.widget.premade.AbstractButtonWidget;
+import com.supermartijn642.core.util.Holder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
  * Created 11/17/2020 by SuperMartijn642
  */
-public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextWidget {
+public class EnergyBarWidget extends AbstractButtonWidget {
 
     private static final ResourceLocation BARS = new ResourceLocation("wirelesschargers", "textures/screen/energy_bars.png");
 
@@ -32,26 +30,27 @@ public class EnergyBarWidget extends AbstractButtonWidget implements IHoverTextW
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
-        Minecraft.getInstance().getTextureManager().bind(BARS);
-        GlStateManager._enableAlphaTest();
-        ScreenUtils.drawTexture(matrixStack, this.x, this.y, this.width, this.height, this.isHovered() ? 1 / 11f : 0, 0, 1 / 11f, 1);
+    public ITextComponent getNarrationMessage(){
+        Holder<ITextComponent> tooltip = new Holder<>();
+        this.getTooltips(tooltip::set);
+        return tooltip.get();
+    }
+
+    @Override
+    public void render(MatrixStack poseStack, int mouseX, int mouseY){
+        ScreenUtils.bindTexture(BARS);
+        ScreenUtils.drawTexture(poseStack, this.x, this.y, this.width, this.height, this.isFocused() ? 1 / 11f : 0, 0, 1 / 11f, 1);
         int energy = this.energy.get();
         int capacity = this.capacity.get();
         float percentage = capacity == 0 ? 1 : Math.max(Math.min(energy / (float)capacity, 1), 0);
         if(percentage != 0)
-            ScreenUtils.drawTexture(matrixStack, this.x, this.y + this.height * (1 - percentage), this.width, this.height * percentage, 3 / 11f, 1 - percentage, 1 / 11f, percentage);
+            ScreenUtils.drawTexture(poseStack, this.x, this.y + this.height * (1 - percentage), this.width, this.height * percentage, 3 / 11f, 1 - percentage, 1 / 11f, percentage);
     }
 
     @Override
-    public ITextComponent getHoverText(){
+    protected void getTooltips(Consumer<ITextComponent> tooltips){
         ITextComponent energy = TextComponents.string(EnergyFormat.formatEnergy(this.energy.get())).color(TextFormatting.GOLD).get();
         ITextComponent capacity = TextComponents.string(EnergyFormat.formatEnergy(this.capacity.get())).color(TextFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(TextFormatting.GRAY).get();
-        return TextComponents.translation("wirelesschargers.screen.stored_energy", energy, capacity).color(TextFormatting.GRAY).get();
-    }
-
-    @Override
-    protected ITextComponent getNarrationMessage(){
-        return this.getHoverText();
+        tooltips.accept(TextComponents.translation("wirelesschargers.screen.stored_energy", energy, capacity).color(TextFormatting.GRAY).get());
     }
 }
