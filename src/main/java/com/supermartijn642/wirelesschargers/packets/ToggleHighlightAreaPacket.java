@@ -1,14 +1,14 @@
 package com.supermartijn642.wirelesschargers.packets;
 
+import com.supermartijn642.core.network.BlockEntityBasePacket;
 import com.supermartijn642.core.network.PacketContext;
-import com.supermartijn642.core.network.TileEntityBasePacket;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
 import net.minecraft.core.BlockPos;
 
 /**
  * Created 7/31/2021 by SuperMartijn642
  */
-public class ToggleHighlightAreaPacket extends TileEntityBasePacket<ChargerBlockEntity> {
+public class ToggleHighlightAreaPacket extends BlockEntityBasePacket<ChargerBlockEntity> {
 
     public ToggleHighlightAreaPacket(){
         super();

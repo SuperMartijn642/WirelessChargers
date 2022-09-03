@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.supermartijn642.core.block.BaseTileEntity;
+import com.supermartijn642.core.block.BaseBlockEntity;
+import com.supermartijn642.core.block.TickableBlockEntity;
 import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,7 +26,7 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseTileEntity implements IEnergyStorage {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, IEnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
@@ -50,11 +51,12 @@ public class ChargerBlockEntity extends BaseTileEntity implements IEnergyStorage
     public float renderingRotationSpeed, renderingRotation;
 
     public ChargerBlockEntity(ChargerType type, BlockPos pos, BlockState state){
-        super(type.getTileEntityType(), pos, state);
+        super(type.getBlockEntityType(), pos, state);
         this.type = type;
     }
 
-    public void tick(){
+    @Override
+    public void update(){
         this.renderingTickCount++;
 
         if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
