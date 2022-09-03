@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.supermartijn642.configlib.ModConfigBuilder;
+import com.supermartijn642.configlib.api.ConfigBuilders;
+import com.supermartijn642.configlib.api.IConfigBuilder;
 
 import java.util.function.Supplier;
 
@@ -26,7 +27,7 @@ public class WirelessChargersConfig {
     public static final Supplier<Integer> advancedPlayerChargerTransferRate;
 
     static{
-        ModConfigBuilder builder = new ModConfigBuilder("wirelesschargers");
+        IConfigBuilder builder = ConfigBuilders.newTomlConfig("wirelesschargers", null, false);
 
         builder.push("General");
 

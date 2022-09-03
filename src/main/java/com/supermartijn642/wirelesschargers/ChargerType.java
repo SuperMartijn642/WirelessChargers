@@ -1,12 +1,14 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.item.BaseBlockItem;
+import com.supermartijn642.core.item.ItemProperties;
+import com.supermartijn642.core.registry.RegistrationHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -21,7 +23,7 @@ public enum ChargerType {
     BASIC_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.basicPlayerChargerRange, WirelessChargersConfig.basicPlayerChargerCapacity, WirelessChargersConfig.basicPlayerChargerTransferRate, ChargerModelType.BASIC_WIRELESS_PLAYER_CHARGER, "Basic Wireless Player Charger"),
     ADVANCED_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.advancedPlayerChargerRange, WirelessChargersConfig.advancedPlayerChargerCapacity, WirelessChargersConfig.advancedPlayerChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_PLAYER_CHARGER, "Advanced Wireless Player Charger");
 
-    private BlockEntityType<ChargerBlockEntity> tileEntityType;
+    private BlockEntityType<ChargerBlockEntity> blockEntityType;
     private ChargerBlock block;
     private BlockItem item;
     public final boolean canChargeBlocks, canChargePlayers;
@@ -47,45 +49,43 @@ public enum ChargerType {
         return this.block;
     }
 
-    public ChargerBlockEntity createTileEntity(BlockPos pos, BlockState state){
+    public ChargerBlockEntity createBlockEntity(BlockPos pos, BlockState state){
         return new ChargerBlockEntity(this, pos, state);
     }
 
-    public BlockEntityType<ChargerBlockEntity> getTileEntityType(){
-        return this.tileEntityType;
+    public BlockEntityType<ChargerBlockEntity> getBlockEntityType(){
+        return this.blockEntityType;
     }
 
     public BlockItem getItem(){
         return this.item;
     }
 
-    public void registerBlock(IForgeRegistry<Block> registry){
+    public void registerBlock(RegistrationHandler.Helper<Block> helper){
         if(this.block != null)
             throw new IllegalStateException("Blocks have already been registered!");
 
         this.block = new ChargerBlock(this);
-        registry.register(this.block);
+        helper.register(this.getRegistryName(), this.block);
     }
 
-    public void registerTileEntity(IForgeRegistry<BlockEntityType<?>> registry){
-        if(this.tileEntityType != null)
-            throw new IllegalStateException("Tile entities have already been registered!");
+    public void registerBlockEntity(RegistrationHandler.Helper<BlockEntityType<?>> helper){
+        if(this.blockEntityType != null)
+            throw new IllegalStateException("Block entities have already been registered!");
         if(this.block == null)
-            throw new IllegalStateException("Blocks must be registered before registering tile entity types!");
+            throw new IllegalStateException("Blocks must be registered before registering block entity types!");
 
-        this.tileEntityType = BlockEntityType.Builder.of(this::createTileEntity, this.block).build(null);
-        this.tileEntityType.setRegistryName(this.getRegistryName() + "_block_entity");
-        registry.register(this.tileEntityType);
+        this.blockEntityType = BlockEntityType.Builder.of(this::createBlockEntity, this.block).build(null);
+        helper.register(this.getRegistryName() + "_block_entity", this.blockEntityType);
     }
 
-    public void registerItem(IForgeRegistry<Item> registry){
+    public void registerItem(RegistrationHandler.Helper<Item> helper){
         if(this.item != null)
             throw new IllegalStateException("Items have already been registered!");
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering items!");
 
-        this.item = new ChargerBlockItem(this.block, new Item.Properties().tab(WirelessChargers.GROUP));
-        this.item.setRegistryName(this.block.getRegistryName());
-        registry.register(this.item);
+        this.item = new BaseBlockItem(this.block, ItemProperties.create().group(WirelessChargers.GROUP));
+        helper.register(this.getRegistryName(), this.item);
     }
 }
