@@ -1,5 +1,6 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.block.BaseBlockEntityType;
 import com.supermartijn642.core.item.BaseBlockItem;
 import com.supermartijn642.core.item.ItemProperties;
 import com.supermartijn642.core.registry.RegistrationHandler;
@@ -21,9 +22,9 @@ public enum ChargerType {
     BASIC_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.basicPlayerChargerRange, WirelessChargersConfig.basicPlayerChargerCapacity, WirelessChargersConfig.basicPlayerChargerTransferRate, ChargerModelType.BASIC_WIRELESS_PLAYER_CHARGER, "Basic Wireless Player Charger"),
     ADVANCED_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.advancedPlayerChargerRange, WirelessChargersConfig.advancedPlayerChargerCapacity, WirelessChargersConfig.advancedPlayerChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_PLAYER_CHARGER, "Advanced Wireless Player Charger");
 
-    private TileEntityType<ChargerBlockEntity> blockEntityType;
+    private BaseBlockEntityType<ChargerBlockEntity> blockEntityType;
     private ChargerBlock block;
-    private BlockItem item;
+    private BaseBlockItem item;
     public final boolean canChargeBlocks, canChargePlayers;
     public final Supplier<Integer> range, capacity, transferRate;
     public final ChargerModelType modelType;
@@ -73,7 +74,7 @@ public enum ChargerType {
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering block entity types!");
 
-        this.blockEntityType = TileEntityType.Builder.of(this::createBlockEntity, this.block).build(null);
+        this.blockEntityType = BaseBlockEntityType.create(this::createBlockEntity, this.block);
         helper.register(this.getRegistryName() + "_block_entity", this.blockEntityType);
     }
 
