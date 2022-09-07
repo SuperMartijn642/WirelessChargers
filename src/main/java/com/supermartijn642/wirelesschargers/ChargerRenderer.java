@@ -1,10 +1,11 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.ClientUtils;
+import com.supermartijn642.core.render.CustomBlockEntityRenderer;
 import com.supermartijn642.core.render.RenderUtils;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
 import java.util.Random;
@@ -12,14 +13,11 @@ import java.util.Random;
 /**
  * Created 7/9/2021 by SuperMartijn642
  */
-public class ChargerRenderer extends TileEntitySpecialRenderer<ChargerBlockEntity> {
+public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEntity> {
 
     @Override
-    public void render(ChargerBlockEntity entity, double x, double y, double z, float partialTicks, int combinedOverlay, float alpha){
-        IBakedModel model = ClientUtils.getBlockRenderer().getModelForState(entity.type.getBlock().getDefaultState().withProperty(ChargerBlock.RING, true));
-
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y, z);
+    public void render(ChargerBlockEntity entity, float partialTicks, int combinedOverlay, float alpha){
+        IBakedModel model = ClientUtils.getMinecraft().getBlockRendererDispatcher().getBlockModelShapes().getModelManager().getModel(new ModelResourceLocation(entity.type.modelType.ringModel, ""));
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
@@ -48,10 +46,8 @@ public class ChargerRenderer extends TileEntitySpecialRenderer<ChargerBlockEntit
             float blue = random.nextFloat();
             alpha *= 0.2f;
 
-            RenderUtils.renderBox(area, red, green, blue);
-            RenderUtils.renderBoxSides(area, red, green, blue, alpha);
+            RenderUtils.renderBox(area, red, green, blue, true);
+            RenderUtils.renderBoxSides(area, red, green, blue, alpha, true);
         }
-
-        GlStateManager.popMatrix();
     }
 }

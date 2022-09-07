@@ -1,11 +1,12 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.block.BaseBlockEntityType;
+import com.supermartijn642.core.item.BaseBlockItem;
+import com.supermartijn642.core.item.ItemProperties;
+import com.supermartijn642.core.registry.RegistrationHandler;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.registries.IForgeRegistry;
 
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -15,20 +16,20 @@ import java.util.function.Supplier;
  */
 public enum ChargerType {
 
-    BASIC_WIRELESS_BLOCK_CHARGER(true, false, WirelessChargersConfig.basicBlockChargerRange, WirelessChargersConfig.basicBlockChargerCapacity, WirelessChargersConfig.basicBlockChargerTransferRate, ChargerModelType.BASIC_WIRELESS_BLOCK_CHARGER, "Basic Wireless Block Charger", ChargerBlockEntity.BasicBlockChargerEntity.class),
-    ADVANCED_WIRELESS_BLOCK_CHARGER(true, false, WirelessChargersConfig.advancedBlockChargerRange, WirelessChargersConfig.advancedBlockChargerCapacity, WirelessChargersConfig.advancedBlockChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_BLOCK_CHARGER, "Advanced Wireless Block Charger", ChargerBlockEntity.AdvancedBlockChargerEntity.class),
-    BASIC_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.basicPlayerChargerRange, WirelessChargersConfig.basicPlayerChargerCapacity, WirelessChargersConfig.basicPlayerChargerTransferRate, ChargerModelType.BASIC_WIRELESS_PLAYER_CHARGER, "Basic Wireless Player Charger", ChargerBlockEntity.BasicPlayerChargerEntity.class),
-    ADVANCED_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.advancedPlayerChargerRange, WirelessChargersConfig.advancedPlayerChargerCapacity, WirelessChargersConfig.advancedPlayerChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_PLAYER_CHARGER, "Advanced Wireless Player Charger", ChargerBlockEntity.AdvancedPlayerChargerEntity.class);
+    BASIC_WIRELESS_BLOCK_CHARGER(true, false, WirelessChargersConfig.basicBlockChargerRange, WirelessChargersConfig.basicBlockChargerCapacity, WirelessChargersConfig.basicBlockChargerTransferRate, ChargerModelType.BASIC_WIRELESS_BLOCK_CHARGER, "Basic Wireless Block Charger"),
+    ADVANCED_WIRELESS_BLOCK_CHARGER(true, false, WirelessChargersConfig.advancedBlockChargerRange, WirelessChargersConfig.advancedBlockChargerCapacity, WirelessChargersConfig.advancedBlockChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_BLOCK_CHARGER, "Advanced Wireless Block Charger"),
+    BASIC_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.basicPlayerChargerRange, WirelessChargersConfig.basicPlayerChargerCapacity, WirelessChargersConfig.basicPlayerChargerTransferRate, ChargerModelType.BASIC_WIRELESS_PLAYER_CHARGER, "Basic Wireless Player Charger"),
+    ADVANCED_WIRELESS_PLAYER_CHARGER(false, true, WirelessChargersConfig.advancedPlayerChargerRange, WirelessChargersConfig.advancedPlayerChargerCapacity, WirelessChargersConfig.advancedPlayerChargerTransferRate, ChargerModelType.ADVANCED_WIRELESS_PLAYER_CHARGER, "Advanced Wireless Player Charger");
 
-    private final Class<? extends ChargerBlockEntity> blockEntityClass;
+    private BaseBlockEntityType<ChargerBlockEntity> blockEntityType;
     private ChargerBlock block;
-    private ItemBlock item;
+    private BaseBlockItem item;
     public final boolean canChargeBlocks, canChargePlayers;
     public final Supplier<Integer> range, capacity, transferRate;
     public final ChargerModelType modelType;
     public final String englishTranslation;
 
-    ChargerType(boolean canChargeBlocks, boolean canChargePlayers, Supplier<Integer> range, Supplier<Integer> capacity, Supplier<Integer> transferRate, ChargerModelType modelType, String englishTranslation, Class<? extends ChargerBlockEntity> blockEntityClass){
+    ChargerType(boolean canChargeBlocks, boolean canChargePlayers, Supplier<Integer> range, Supplier<Integer> capacity, Supplier<Integer> transferRate, ChargerModelType modelType, String englishTranslation){
         this.canChargeBlocks = canChargeBlocks;
         this.canChargePlayers = canChargePlayers;
         this.range = range;
@@ -36,7 +37,6 @@ public enum ChargerType {
         this.transferRate = transferRate;
         this.modelType = modelType;
         this.englishTranslation = englishTranslation;
-        this.blockEntityClass = blockEntityClass;
     }
 
     public String getRegistryName(){
@@ -47,46 +47,43 @@ public enum ChargerType {
         return this.block;
     }
 
-    public ChargerBlockEntity createTileEntity(){
-        try{
-            return this.blockEntityClass.newInstance();
-        }catch(Exception e){
-            e.printStackTrace();
-            return null;
-        }
+    public ChargerBlockEntity createBlockEntity(){
+        return new ChargerBlockEntity(this);
     }
 
-    public Class<? extends ChargerBlockEntity> getBlockEntityClass(){
-        return this.blockEntityClass;
+    public BaseBlockEntityType<ChargerBlockEntity> getBlockEntityType(){
+        return this.blockEntityType;
     }
 
     public ItemBlock getItem(){
         return this.item;
     }
 
-    public void registerBlock(IForgeRegistry<Block> registry){
+    public void registerBlock(RegistrationHandler.Helper<Block> helper){
         if(this.block != null)
             throw new IllegalStateException("Blocks have already been registered!");
 
         this.block = new ChargerBlock(this);
-        registry.register(this.block);
+        helper.register(this.getRegistryName(), this.block);
     }
 
-    public void registerTileEntity(){
+    public void registerBlockEntity(RegistrationHandler.Helper<BaseBlockEntityType<?>> helper){
+        if(this.blockEntityType != null)
+            throw new IllegalStateException("Block entities have already been registered!");
         if(this.block == null)
-            throw new IllegalStateException("Blocks must be registered before registering tile entity types!");
+            throw new IllegalStateException("Blocks must be registered before registering block entity types!");
 
-        GameRegistry.registerTileEntity(this.blockEntityClass, new ResourceLocation("wirelesschargers", this.getRegistryName() + "_block_entity"));
+        this.blockEntityType = BaseBlockEntityType.create(this::createBlockEntity, this.block);
+        helper.register(this.getRegistryName() + "_block_entity", this.blockEntityType);
     }
 
-    public void registerItem(IForgeRegistry<Item> registry){
+    public void registerItem(RegistrationHandler.Helper<Item> helper){
         if(this.item != null)
             throw new IllegalStateException("Items have already been registered!");
         if(this.block == null)
             throw new IllegalStateException("Blocks must be registered before registering items!");
 
-        this.item = new ItemBlock(this.block);
-        this.item.setRegistryName(this.block.getRegistryName());
-        registry.register(this.item);
+        this.item = new BaseBlockItem(this.block, ItemProperties.create().group(WirelessChargers.GROUP));
+        helper.register(this.getRegistryName(), this.item);
     }
 }

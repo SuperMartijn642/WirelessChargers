@@ -14,12 +14,18 @@
       "type": "forge:ore_dict",
       "ore": "ingotGold"
     },
-    "C": {
-      "item": "wirelesschargers:basic_wireless_player_charger"
-    },
-    "D": {
-      "item": "minecraft:blaze_powder"
-    },
+    "C": [
+      {
+        "type": "minecraft:item",
+        "item": "wirelesschargers:basic_wireless_player_charger"
+      }
+    ],
+    "D": [
+      {
+        "type": "minecraft:item",
+        "item": "minecraft:blaze_powder"
+      }
+    ],
     "E": {
       "type": "forge:ore_dict",
       "ore": "blockRedstone"

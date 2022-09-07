@@ -22,8 +22,14 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(project.java_target)
 println("Java: " + System.getProperty("java.version") + " JVM: " + System.getProperty("java.vm.version") + "(" + System.getProperty("java.vendor") + ") Arch: " + System.getProperty("os.arch"))
 
 repositories {
+    flatDir {
+        dirs "libs"
+    }
     maven {
         url "https://www.cursemaven.com"
+    }
+    maven {
+        url = "https://repo.spongepowered.org/maven"
     }
 }
 
@@ -32,7 +38,8 @@ dependencies {
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
     // Core library
-    implementation fg.deobf("curse.maven:supermartijn642s-core-lib-454372:${project.core_library_file}")
+//    implementation fg.deobf("curse.maven:supermartijn642s-core-lib-454372:${project.core_library_file}")
+    implementation fg.deobf("com.supermartijn642:supermartijn642corelib:1.1.0-forge-mc1.12")
     // Config library
     implementation fg.deobf("curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file}")
 
@@ -54,8 +61,8 @@ processResources {
         expand project.properties
     }
 
-    rename "modid.mixins.json", "${project.mod_id}.mixins.json"
-    rename "icon.png", "${project.mod_id}.png"
+    rename "^modid.mixins.json\$", "${project.mod_id}.mixins.json"
+    rename "^icon.png\$", "${project.mod_id}.png"
 }
 
 minecraft {
@@ -63,11 +70,15 @@ minecraft {
 
     // accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
 
+    // Make sure the core lib's mixins get applied
+    String core_lib_core_mod = "com.supermartijn642.core.coremod.CoreModPlugin"
+
     runs {
         client {
             workingDirectory project.file("run")
 
             property "forge.logging.markers", "REGISTRIES"
+            property "fml.coreMods.load", core_lib_core_mod
 
             mods {
                 source sourceSets.main
@@ -78,10 +89,59 @@ minecraft {
             workingDirectory project.file("run")
 
             property "forge.logging.markers", "REGISTRIES"
+            property "fml.coreMods.load", core_lib_core_mod
 
             mods {
                 source sourceSets.main
             }
         }
+
+        data {
+            parent runs.client
+            property "--generatorModid", project.mod_id
+            property "--output", file("src/generated/resources/")
+            property "--existing", file("$buildDir/data_resources")
+        }
     }
+}
+
+task processSources(type: Sync) {
+    from sourceSets.main.java
+    into "$buildDir/sources"
+    inputs.property 'version', version
+
+    // Replace mod properties in main mod class
+    Hashtable<String, String> properties = new Hashtable<>()
+    project.properties.entrySet().stream()
+            .filter(entry -> entry.key instanceof String && entry.value instanceof String)
+            .forEach(entry -> properties.put(entry.key, entry.value))
+    filesMatching(project.mod_package.replace('.', '/') + "/" + project.mod_main_class + ".java") {
+        //noinspection UnnecessaryQualifiedReference
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: properties)
+    }
+}
+
+compileJava {
+    source = processSources.outputs
+}
+
+task prepareDataResources(type: Sync) {
+    from file("src/main/resources")
+    into "$buildDir/data_resources"
+    inputs.property "version", version
+
+    filesMatching(["mcmod.info", "modid.mixins.json", "pack.mcmeta"]) {
+        expand project.properties
+    }
+
+    exclude "**/*.pdn"
+
+    rename "^modid.mixins.json\$", "${project.mod_id}.mixins.json"
+    rename "^icon.png\$", "${project.mod_id}.png"
+}
+
+// Run prepareDataResources before prepareRunData
+tasks.whenTaskAdded {
+    if (it.name == "prepareRunData")
+        it.dependsOn "prepareDataResources"
 }

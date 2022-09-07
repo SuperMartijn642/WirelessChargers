@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
-import com.supermartijn642.core.block.BaseTileEntity;
+import com.supermartijn642.core.block.BaseBlockEntity;
+import com.supermartijn642.core.block.TickableBlockEntity;
 import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -9,7 +10,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEnergyStorage {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, IEnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
@@ -35,34 +35,6 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEn
         directions.add(null);
         directions.addAll(Arrays.asList(EnumFacing.values()));
         CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
-    }
-
-    public static class BasicBlockChargerEntity extends ChargerBlockEntity {
-
-        public BasicBlockChargerEntity(){
-            super(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER);
-        }
-    }
-
-    public static class AdvancedBlockChargerEntity extends ChargerBlockEntity {
-
-        public AdvancedBlockChargerEntity(){
-            super(ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER);
-        }
-    }
-
-    public static class BasicPlayerChargerEntity extends ChargerBlockEntity {
-
-        public BasicPlayerChargerEntity(){
-            super(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER);
-        }
-    }
-
-    public static class AdvancedPlayerChargerEntity extends ChargerBlockEntity {
-
-        public AdvancedPlayerChargerEntity(){
-            super(ChargerType.ADVANCED_WIRELESS_PLAYER_CHARGER);
-        }
     }
 
     public final ChargerType type;
@@ -76,7 +48,7 @@ public class ChargerBlockEntity extends BaseTileEntity implements ITickable, IEn
     public float renderingRotationSpeed, renderingRotation;
 
     public ChargerBlockEntity(ChargerType type){
-        super();
+        super(type.getBlockEntityType());
         this.type = type;
     }
 

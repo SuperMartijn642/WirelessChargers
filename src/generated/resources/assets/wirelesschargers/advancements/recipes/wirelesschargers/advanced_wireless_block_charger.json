@@ -1,17 +1,28 @@
 {
   "parent": "minecraft:recipes/root",
-  "rewards": {
-    "recipes": [
-      "wirelesschargers:advanced_wireless_block_charger"
-    ]
+  "display": {
+    "icon": {
+      "item": "wirelesschargers:advanced_wireless_block_charger"
+    },
+    "title": {
+      "translate": "wirelesschargers.advancement.recipes/wirelesschargers/advanced_wireless_block_charger.title"
+    },
+    "description": {
+      "translate": "wirelesschargers.advancement.recipes/wirelesschargers/advanced_wireless_block_charger.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
   },
   "criteria": {
-    "has_basic_charger": {
+    "can_unlock_recipe": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "wirelesschargers:basic_wireless_block_charger"
+            "item": "wirelesschargers:basic_wireless_block_charger",
+            "data": 0
           }
         ]
       }
@@ -25,8 +36,13 @@
   },
   "requirements": [
     [
-      "has_basic_charger",
-      "has_the_recipe"
+      "has_the_recipe",
+      "can_unlock_recipe"
     ]
-  ]
+  ],
+  "rewards": {
+    "recipes": [
+      "wirelesschargers:advanced_wireless_block_charger"
+    ]
+  }
 }

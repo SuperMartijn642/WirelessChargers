@@ -1,10 +1,7 @@
 {
   "variants": {
-    "ring=false": {
+    "normal": {
       "model": "wirelesschargers:advanced_wireless_charger"
-    },
-    "ring=true": {
-      "model": "wirelesschargers:advanced_wireless_block_charger_rings"
     }
   }
 }

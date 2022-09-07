@@ -21,7 +21,8 @@
       "conditions": {
         "items": [
           {
-            "item": "wirelesschargers:advanced_wireless_player_charger"
+            "item": "wirelesschargers:advanced_wireless_player_charger",
+            "data": 0
           }
         ]
       }

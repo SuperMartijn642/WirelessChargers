@@ -10,28 +10,30 @@
       "translate": "wirelesschargers.advancement.wireless_charging.description"
     },
     "frame": "task",
+    "background": "minecraft:blocks/redstone_block",
     "show_toast": true,
     "announce_to_chat": true,
-    "hidden": false,
-    "background": "minecraft:textures/blocks/redstone_block.png"
+    "hidden": false
   },
   "criteria": {
-    "has_player_charger": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "item": "wirelesschargers:basic_wireless_player_charger"
-          }
-        ]
-      }
-    },
     "has_block_charger": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "wirelesschargers:basic_wireless_block_charger"
+            "item": "wirelesschargers:basic_wireless_block_charger",
+            "data": 0
+          }
+        ]
+      }
+    },
+    "has_player_charger": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "wirelesschargers:basic_wireless_player_charger",
+            "data": 0
           }
         ]
       }

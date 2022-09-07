@@ -2,15 +2,13 @@ package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.EnergyFormat;
 import com.supermartijn642.core.TextComponents;
-import com.supermartijn642.core.ToolType;
 import com.supermartijn642.core.block.BaseBlock;
+import com.supermartijn642.core.block.BlockProperties;
+import com.supermartijn642.core.block.EntityHoldingBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockFaceShape;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumDyeColor;
@@ -20,6 +18,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
@@ -28,22 +27,18 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlock extends BaseBlock {
-
-    public static final PropertyBool RING = PropertyBool.create("ring");
+public class ChargerBlock extends BaseBlock implements EntityHoldingBlock {
 
     public final ChargerType type;
 
     public ChargerBlock(ChargerType type){
-        super(type.getRegistryName(), true, Properties.create(Material.IRON, EnumDyeColor.GRAY).harvestTool(ToolType.PICKAXE).hardnessAndResistance(2f));
+        super(true, BlockProperties.create(Material.IRON, EnumDyeColor.GRAY).destroyTime(2).explosionResistance(2));
         this.type = type;
-        this.setUnlocalizedName("wirelesschargers." + type.getRegistryName());
-        this.setCreativeTab(WirelessChargers.GROUP);
-        this.setDefaultState(this.getDefaultState().withProperty(RING, false));
     }
 
     @Override
@@ -64,41 +59,35 @@ public class ChargerBlock extends BaseBlock {
     }
 
     @Override
-    public boolean hasTileEntity(IBlockState state){
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createTileEntity(World world, IBlockState state){
-        return this.type.createTileEntity();
+    public TileEntity createNewBlockEntity(){
+        return this.type.createBlockEntity();
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(world.isRemote)
-            ClientProxy.openChargerScreen(TextComponents.block(this).get(), pos);
-        return true;
+    protected InteractionFeedback interact(IBlockState state, World level, BlockPos pos, EntityPlayer player, EnumHand hand, EnumFacing hitSide, Vec3d hitLocation){
+        if(level.isRemote)
+            WirelessChargersClient.openChargerScreen(TextComponents.block(this).get(), level, pos);
+        return InteractionFeedback.SUCCESS;
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World world, List<String> list, ITooltipFlag flag){
+    protected void appendItemInformation(ItemStack stack, IBlockAccess level, Consumer<ITextComponent> info, boolean advanced){
         ITextComponent range = TextComponents.number(this.type.range.get() * 2 + 1).color(TextFormatting.GOLD).get();
 
         // blocks
         if(this.type.canChargeBlocks){
-            list.add(TextComponents.translation("wirelesschargers.charger.info.blocks", range).color(TextFormatting.YELLOW).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.blocks", range).color(TextFormatting.YELLOW).get());
 
             ITextComponent transferRate = TextComponents.string(EnergyFormat.formatEnergy(this.type.transferRate.get())).color(TextFormatting.GOLD).string(" " + EnergyFormat.formatUnitPerTick()).color(TextFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_blocks", transferRate).color(TextFormatting.GRAY).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_blocks", transferRate).color(TextFormatting.GRAY).get());
         }
 
         // players
         if(this.type.canChargePlayers){
-            list.add(TextComponents.translation("wirelesschargers.charger.info.players", range).color(TextFormatting.YELLOW).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.players", range).color(TextFormatting.YELLOW).get());
 
             ITextComponent transferRate = TextComponents.string(EnergyFormat.formatEnergy(this.type.transferRate.get())).color(TextFormatting.GOLD).string(" " + EnergyFormat.formatUnitPerTick()).color(TextFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_players", transferRate).color(TextFormatting.GRAY).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.transfer_rate_players", transferRate).color(TextFormatting.GRAY).get());
         }
 
         // stored energy
@@ -106,7 +95,7 @@ public class ChargerBlock extends BaseBlock {
         if(energy > 0){
             ITextComponent energyText = TextComponents.string(EnergyFormat.formatEnergy(energy)).color(TextFormatting.GOLD).get();
             ITextComponent capacity = TextComponents.string(EnergyFormat.formatEnergy(this.type.capacity.get())).color(TextFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(TextFormatting.GRAY).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.stored_energy", energyText, capacity).color(TextFormatting.GRAY).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.stored_energy", energyText, capacity).color(TextFormatting.GRAY).get());
         }
 
         // redstone mode
@@ -114,13 +103,13 @@ public class ChargerBlock extends BaseBlock {
         if(redstoneMode != 2){
             ChargerBlockEntity.RedstoneMode mode = ChargerBlockEntity.RedstoneMode.fromIndex(redstoneMode);
             ITextComponent value = TextComponents.translation("wirelesschargers.screen.redstone_" + mode.name().toLowerCase(Locale.ROOT)).color(TextFormatting.GOLD).get();
-            list.add(TextComponents.translation("wirelesschargers.charger.info.redstone_mode", value).color(TextFormatting.GRAY).format());
+            info.accept(TextComponents.translation("wirelesschargers.charger.info.redstone_mode", value).color(TextFormatting.GRAY).get());
         }
     }
 
     @Override
-    public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable EnumFacing side){
-        return side != EnumFacing.UP;
+    public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable EnumFacing direction){
+        return direction != EnumFacing.UP;
     }
 
     @Override
@@ -145,15 +134,5 @@ public class ChargerBlock extends BaseBlock {
     @Override
     public boolean isOpaqueCube(IBlockState state){
         return false;
-    }
-
-    @Override
-    protected BlockStateContainer createBlockState(){
-        return new BlockStateContainer(this, RING);
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state){
-        return 0;
     }
 }
