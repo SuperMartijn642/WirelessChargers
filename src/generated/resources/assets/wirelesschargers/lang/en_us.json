@@ -11,7 +11,7 @@
   "wirelesschargers.advancement.no_more_cables.description": "Craft an advanced wireless block charger",
   "wirelesschargers.screen.redstone_low": "Low",
   "wirelesschargers.screen.redstone_disabled": "Disabled",
-  "wirelesschargers.charger.info.players": "Charges players\u0027 items in a %1$dx%1$dx%1$d area.",
+  "wirelesschargers.charger.info.players": "Charges players' items in a %1$dx%1$dx%1$d area.",
   "wirelesschargers.screen.redstone_high": "High",
   "wirelesschargers.charger.info.transfer_rate_blocks": "Charging rate: %d per block",
   "wirelesschargers.screen.highlight_area": "Highlight area: %s",
