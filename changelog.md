@@ -1,2 +1,2 @@
 ### Wireless Chargers 1.0.7
-- Updated to core library 1.1
+- Initial release of Wireless Chargers for Minecraft 1.19.3

@@ -1,0 +1,5 @@
+// 1.19.3	2023-01-20T20:57:41.5903879	Resource Generator 5
+2f27bf65dc26ad7af50d1c1d9def802c8d73eb57 data/wirelesschargers/loot_tables/blocks/advanced_wireless_block_charger.json
+30a4a774b15cf713b177ca3fa2ba0577bc787d5d data/wirelesschargers/loot_tables/blocks/advanced_wireless_player_charger.json
+71cd422a358f5566564c331b37efa38f75741db0 data/wirelesschargers/loot_tables/blocks/basic_wireless_block_charger.json
+cecc9656853650b9f127e83c2f9fe90c086f687b data/wirelesschargers/loot_tables/blocks/basic_wireless_player_charger.json

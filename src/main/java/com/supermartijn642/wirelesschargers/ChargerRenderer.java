@@ -1,7 +1,6 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Quaternion;
 import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.render.CustomBlockEntityRenderer;
 import com.supermartijn642.core.render.RenderUtils;
@@ -11,6 +10,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.model.data.ModelData;
+import org.joml.Quaternionf;
 
 import java.util.Random;
 
@@ -25,7 +25,7 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
-        poseStack.mulPose(new Quaternion(0, (entity.renderingRotation + entity.renderingRotationSpeed * partialTicks) / 3, 0, false));
+        poseStack.mulPose(new Quaternionf().setAngleAxis((entity.renderingRotation + entity.renderingRotationSpeed * partialTicks) / 3 * 2 * Math.PI, 0, 1, 0));
         poseStack.translate(-0.5, 0, -0.5);
 
         RandomSource randomsource = RandomSource.create();
