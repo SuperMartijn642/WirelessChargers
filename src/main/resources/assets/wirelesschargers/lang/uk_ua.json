@@ -1,8 +1,8 @@
 {
-  "block.wirelesschargers.advanced_wireless_block_charger": "Розширений бездротовий зарядник блоків",
-  "block.wirelesschargers.advanced_wireless_player_charger": "Розширений бездротовий зарядник гравців",
-  "block.wirelesschargers.basic_wireless_block_charger": "Базовий бездротовий зарядник блоків",
-  "block.wirelesschargers.basic_wireless_player_charger": "Базовий бездротовий зарядник",
+  "wirelesschargers.block.advanced_wireless_block_charger": "Розширений бездротовий зарядник блоків",
+  "wirelesschargers.block.advanced_wireless_player_charger": "Розширений бездротовий зарядник гравців",
+  "wirelesschargers.block.basic_wireless_block_charger": "Базовий бездротовий зарядник блоків",
+  "wirelesschargers.block.basic_wireless_player_charger": "Базовий бездротовий зарядник",
   "wirelesschargers.advancement.no_more_batteries.description": "Створіть розширений бездротовий зарядник гравців",
   "wirelesschargers.advancement.no_more_batteries.title": "Тепер без батарей",
   "wirelesschargers.advancement.no_more_cables.description": "Створіть розширений бездротовий зарядник блоків",
