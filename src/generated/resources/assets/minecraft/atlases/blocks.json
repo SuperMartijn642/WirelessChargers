@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:block/wireless_charger_side"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:block/wireless_charger_center"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:block/wireless_charger_top"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:block/wireless_charger_bottom"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:block/wireless_charger_inside"
+    }
+  ]
+}

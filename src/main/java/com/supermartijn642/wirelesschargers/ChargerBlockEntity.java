@@ -138,9 +138,8 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                         for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
                             ItemStack stack = slot.getB();
                             EnergyStorage storage;
-                            if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack))) != null){
+                            if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack))) != null){
                                 try(Transaction transaction = Transaction.openOuter()){
-                                    final int max = toTransfer;
                                     int transferred = (int)storage.insert(toTransfer, transaction);
                                     if(transferred > 0){
                                         spawnParticles = true;

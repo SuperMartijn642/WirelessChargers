@@ -26,7 +26,7 @@ public class WirelessChargersClient implements ClientModInitializer {
             // Block entity renderers
             handler.registerCustomBlockEntityRenderer(type::getBlockEntityType, ChargerRenderer::new);
             // Baked item models
-            ResourceLocation location = new ModelResourceLocation("wirelesschargers:" + type.getRegistryName(), "inventory");
+            ResourceLocation location = new ModelResourceLocation(new ResourceLocation("wirelesschargers:" + type.getRegistryName()), "inventory");
             handler.registerModelOverwrite(location, CustomRendererBakedModelWrapper::wrap);
             // Item renderer
             handler.registerCustomItemRenderer(type::getItem, () -> new BlockEntityCustomItemRenderer<>(

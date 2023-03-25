@@ -2,13 +2,13 @@
   "parent": "minecraft:recipes/root",
   "display": {
     "icon": {
-      "item": "wirelesschargers:basic_wireless_block_charger"
+      "item": "wirelesschargers:advanced_wireless_block_charger"
     },
     "title": {
-      "translate": "wirelesschargers.advancement.recipes/wirelesschargers/basic_wireless_block_charger.title"
+      "translate": "wirelesschargers.advancement.recipes/misc/advanced_wireless_block_charger.title"
     },
     "description": {
-      "translate": "wirelesschargers.advancement.recipes/wirelesschargers/basic_wireless_block_charger.description"
+      "translate": "wirelesschargers.advancement.recipes/misc/advanced_wireless_block_charger.description"
     },
     "frame": "task",
     "show_toast": false,
@@ -19,7 +19,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "wirelesschargers:basic_wireless_block_charger"
+        "recipe": "wirelesschargers:advanced_wireless_block_charger"
       }
     },
     "recipe_condition": {
@@ -28,7 +28,7 @@
         "items": [
           {
             "items": [
-              "minecraft:ender_pearl"
+              "wirelesschargers:basic_wireless_block_charger"
             ]
           }
         ]
@@ -43,7 +43,7 @@
   ],
   "rewards": {
     "recipes": [
-      "wirelesschargers:basic_wireless_block_charger"
+      "wirelesschargers:advanced_wireless_block_charger"
     ]
   }
 }
