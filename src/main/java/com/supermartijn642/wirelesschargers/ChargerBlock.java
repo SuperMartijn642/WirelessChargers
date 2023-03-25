@@ -28,8 +28,8 @@ import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -121,11 +121,6 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
             Component value = TextComponents.translation("wirelesschargers.screen.redstone_" + mode.name().toLowerCase(Locale.ROOT)).color(ChatFormatting.GOLD).get();
             info.accept(TextComponents.translation("wirelesschargers.charger.info.redstone_mode", value).color(ChatFormatting.GRAY).get());
         }
-    }
-
-    @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, Direction direction){
-        return direction != Direction.UP;
     }
 
     @Override

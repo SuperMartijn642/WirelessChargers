@@ -6,22 +6,21 @@ import com.supermartijn642.core.registry.ClientRegistrationHandler;
 import com.supermartijn642.core.render.BlockEntityCustomItemRenderer;
 import com.supermartijn642.core.render.CustomRendererBakedModelWrapper;
 import com.supermartijn642.wirelesschargers.screen.ChargerScreen;
+import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * Created 7/1/2021 by SuperMartijn642
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class WirelessChargersClient {
+public class WirelessChargersClient implements ClientModInitializer {
 
-    public static void register(){
+    @Override
+    public void onInitializeClient(){
         ClientRegistrationHandler handler = ClientRegistrationHandler.get("wirelesschargers");
         for(ChargerType type : ChargerType.values()){
             // Block entity renderers

@@ -7,10 +7,10 @@
   ],
   "key": {
     "A": {
-      "tag": "forge:dusts/glowstone"
+      "item": "minecraft:glowstone_dust"
     },
     "B": {
-      "tag": "forge:ingots/gold"
+      "tag": "c:gold_ingots"
     },
     "C": {
       "item": "wirelesschargers:basic_wireless_player_charger"
@@ -19,7 +19,7 @@
       "item": "minecraft:blaze_powder"
     },
     "E": {
-      "tag": "forge:storage_blocks/redstone"
+      "item": "minecraft:redstone_block"
     }
   },
   "result": {

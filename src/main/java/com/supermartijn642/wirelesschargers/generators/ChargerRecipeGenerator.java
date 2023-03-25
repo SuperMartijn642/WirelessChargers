@@ -3,8 +3,8 @@ package com.supermartijn642.wirelesschargers.generators;
 import com.supermartijn642.core.generator.RecipeGenerator;
 import com.supermartijn642.core.generator.ResourceCache;
 import com.supermartijn642.wirelesschargers.ChargerType;
+import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.common.Tags;
 
 /**
  * Created 02/09/2022 by SuperMartijn642
@@ -22,22 +22,22 @@ public class ChargerRecipeGenerator extends RecipeGenerator {
             .pattern(" A ")
             .pattern("BCB")
             .pattern("BDB")
-            .input('A', Tags.Items.DUSTS_GLOWSTONE)
-            .input('B', Tags.Items.INGOTS_IRON)
-            .input('C', Tags.Items.ENDER_PEARLS)
-            .input('D', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy(Tags.Items.ENDER_PEARLS);
+            .input('A', Items.GLOWSTONE_DUST)
+            .input('B', ConventionalItemTags.IRON_INGOTS)
+            .input('C', Items.ENDER_PEARL)
+            .input('D', Items.REDSTONE_BLOCK)
+            .unlockedBy(Items.ENDER_PEARL);
 
         // Advanced wireless block charger
         this.shaped(ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER.getItem())
             .pattern(" A ")
             .pattern("BCB")
             .pattern("DED")
-            .input('A', Tags.Items.DUSTS_GLOWSTONE)
-            .input('B', Tags.Items.INGOTS_IRON)
+            .input('A', Items.GLOWSTONE_DUST)
+            .input('B', ConventionalItemTags.IRON_INGOTS)
             .input('C', ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem())
             .input('D', Items.BLAZE_POWDER)
-            .input('E', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+            .input('E', Items.REDSTONE_BLOCK)
             .unlockedBy(ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem());
 
         // Basic wireless player charger
@@ -45,22 +45,22 @@ public class ChargerRecipeGenerator extends RecipeGenerator {
             .pattern(" A ")
             .pattern("BCB")
             .pattern("BDB")
-            .input('A', Tags.Items.INGOTS_GOLD)
-            .input('B', Tags.Items.INGOTS_IRON)
-            .input('C', Tags.Items.ENDER_PEARLS)
-            .input('D', Tags.Items.STORAGE_BLOCKS_REDSTONE)
-            .unlockedBy(Tags.Items.ENDER_PEARLS);
+            .input('A', ConventionalItemTags.GOLD_INGOTS)
+            .input('B', ConventionalItemTags.IRON_INGOTS)
+            .input('C', Items.ENDER_PEARL)
+            .input('D', Items.REDSTONE_BLOCK)
+            .unlockedBy(Items.ENDER_PEARL);
 
         // Advanced wireless block charger
         this.shaped(ChargerType.ADVANCED_WIRELESS_PLAYER_CHARGER.getItem())
             .pattern(" A ")
             .pattern("BCB")
             .pattern("DED")
-            .input('A', Tags.Items.DUSTS_GLOWSTONE)
-            .input('B', Tags.Items.INGOTS_GOLD)
+            .input('A', Items.GLOWSTONE_DUST)
+            .input('B', ConventionalItemTags.GOLD_INGOTS)
             .input('C', ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
             .input('D', Items.BLAZE_POWDER)
-            .input('E', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+            .input('E', Items.REDSTONE_BLOCK)
             .unlockedBy(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem());
     }
 }

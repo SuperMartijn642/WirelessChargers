@@ -4,32 +4,25 @@ import com.supermartijn642.core.item.CreativeItemGroup;
 import com.supermartijn642.core.network.PacketChannel;
 import com.supermartijn642.core.registry.GeneratorRegistrationHandler;
 import com.supermartijn642.core.registry.RegistrationHandler;
-import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import com.supermartijn642.wirelesschargers.generators.*;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.fabricmc.api.ModInitializer;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
  */
-@Mod("wirelesschargers")
-public class WirelessChargers {
+public class WirelessChargers implements ModInitializer {
 
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
     public static final CreativeItemGroup GROUP = CreativeItemGroup.create("wirelesschargers", ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER::getItem);
 
-    public WirelessChargers(){
+    @Override
+    public void onInitialize(){
         CHANNEL.registerMessage(ToggleHighlightAreaPacket.class, ToggleHighlightAreaPacket::new, true);
         CHANNEL.registerMessage(CycleRedstoneModePacket.class, CycleRedstoneModePacket::new, true);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ModCompatibility::init);
-
         register();
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> WirelessChargersClient::register);
         registerGenerators();
     }
 

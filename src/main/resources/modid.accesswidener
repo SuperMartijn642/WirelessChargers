@@ -1,0 +1,4 @@
+accessWidener v1 named
+
+# ModelManager
+accessible field net/minecraft/client/resources/model/ModelManager bakedRegistry Ljava/util/Map;

@@ -7,16 +7,16 @@
   ],
   "key": {
     "A": {
-      "tag": "forge:ingots/gold"
+      "tag": "c:gold_ingots"
     },
     "B": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:iron_ingots"
     },
     "C": {
-      "tag": "forge:ender_pearls"
+      "item": "minecraft:ender_pearl"
     },
     "D": {
-      "tag": "forge:storage_blocks/redstone"
+      "item": "minecraft:redstone_block"
     }
   },
   "result": {

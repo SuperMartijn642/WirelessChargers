@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.model.data.EmptyModelData;
 
 import java.util.Random;
 
@@ -20,7 +19,7 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
     @Override
     public void render(ChargerBlockEntity entity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay){
-        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(entity.type.modelType.ringModel);
+        BakedModel model = ClientUtils.getMinecraft().getModelManager().bakedRegistry.get(entity.type.modelType.ringModel);
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
@@ -28,13 +27,13 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
         poseStack.translate(-0.5, 0, -0.5);
 
         ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-            poseStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay, EmptyModelData.INSTANCE
+            poseStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay
         );
 
         poseStack.translate(0, entity.type.modelType.ringYOffset, 0);
 
         ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-            poseStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay, EmptyModelData.INSTANCE
+            poseStack.last(), bufferSource.getBuffer(RenderType.solid()), null, model, 1, 1, 1, combinedLight, combinedOverlay
         );
 
         poseStack.popPose();

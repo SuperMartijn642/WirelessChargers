@@ -1,45 +1,37 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.block.BaseBlockEntity;
 import com.supermartijn642.core.block.TickableBlockEntity;
-import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
+import dev.emi.trinkets.api.SlotReference;
+import dev.emi.trinkets.api.TrinketComponent;
+import dev.emi.trinkets.api.TrinketsApi;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import team.reborn.energy.api.EnergyStorage;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, IEnergyStorage {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
+    private static final Set<Direction> CAPABILITY_DIRECTIONS = EnumSet.allOf(Direction.class);
 
-    private static final Set<Direction> CAPABILITY_DIRECTIONS;
-
-    static{
-        Set<Direction> directions = new HashSet<>();
-        directions.add(null);
-        directions.addAll(Arrays.asList(Direction.values()));
-        CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
-    }
-
-    private final LazyOptional<IEnergyStorage> capability = LazyOptional.of(() -> this);
     public final ChargerType type;
     private int energy;
     private boolean highlightArea;
@@ -55,6 +47,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         this.type = type;
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     @Override
     public void update(){
         this.renderingTickCount++;
@@ -80,10 +73,13 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     BlockEntity entity = this.level.getBlockEntity(pos);
                     boolean canAcceptEnergy = false;
                     for(Direction direction : CAPABILITY_DIRECTIONS){
-                        if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(CapabilityEnergy.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
-                            this.chargeableBlocks.put(offset, direction);
-                            canAcceptEnergy = true;
-                            break;
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            EnergyStorage storage = EnergyStorage.SIDED.find(this.level, pos, entity.getBlockState(), entity, direction);
+                            if(storage != null && storage.supportsInsertion()){
+                                this.chargeableBlocks.put(offset, direction);
+                                canAcceptEnergy = true;
+                                break;
+                            }
                         }
                     }
                     if(!canAcceptEnergy)
@@ -109,16 +105,18 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 Set<BlockPos> toRemove = new HashSet<>();
                 for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
                     BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                    LazyOptional<IEnergyStorage> optional;
-                    if(tile != null && (optional = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())).isPresent()){
-                        final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                        int transferred = optional.map(storage -> storage.receiveEnergy(toTransfer, false)).orElse(0);
-                        if(transferred > 0){
-                            spawnParticles = true;
-                            this.energy -= transferred;
-                            this.dataChanged();
-                            if(this.energy <= 0)
-                                break;
+                    EnergyStorage storage;
+                    if(tile != null && (storage = EnergyStorage.SIDED.find(this.level, tile.getBlockPos(), tile.getBlockState(), tile, entry.getValue())) != null){
+                        try(Transaction transaction = Transaction.openOuter()){
+                            final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                            int transferred = (int)storage.insert(toTransfer, transaction);
+                            if(transferred > 0){
+                                spawnParticles = true;
+                                this.energy -= transferred;
+                                this.dataChanged();
+                                if(this.energy <= 0)
+                                    break;
+                            }
                         }
                     }else
                         toRemove.add(entry.getKey());
@@ -134,44 +132,53 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             for(Player player : players){
                 int toTransfer = Math.min(this.energy, this.type.transferRate.get());
                 // Check Curios/Baubles slots
-                IItemHandlerModifiable handler = ModCompatibility.curios.getCuriosStacks(player);
-                for(int i = 0; i < handler.getSlots(); i++){
-                    ItemStack stack = handler.getStackInSlot(i);
-                    if(!stack.isEmpty()){
-                        LazyOptional<IEnergyStorage> optional = stack.getCapability(CapabilityEnergy.ENERGY);
-                        final int max = toTransfer;
-                        int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                        if(transferred > 0){
-                            handler.setStackInSlot(i, stack);
-                            spawnParticles = true;
-                            this.energy -= transferred;
-                            this.dataChanged();
-                            if(this.energy <= 0)
-                                break loop;
-                            toTransfer -= transferred;
-                            if(toTransfer <= 0)
-                                continue loop;
+                if(CommonUtils.isModLoaded("trinkets")){
+                    Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(player);
+                    if(component.isPresent()){
+                        for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
+                            ItemStack stack = slot.getB();
+                            EnergyStorage storage;
+                            if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack))) != null){
+                                try(Transaction transaction = Transaction.openOuter()){
+                                    final int max = toTransfer;
+                                    int transferred = (int)storage.insert(toTransfer, transaction);
+                                    if(transferred > 0){
+                                        spawnParticles = true;
+                                        this.energy -= transferred;
+                                        this.dataChanged();
+                                        if(this.energy <= 0)
+                                            break loop;
+                                        toTransfer -= transferred;
+                                        if(toTransfer <= 0)
+                                            continue loop;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 // Check player inventory
                 Inventory inventory = player.getInventory();
+                PlayerInventoryStorage inventoryStorage = PlayerInventoryStorage.of(player);
                 for(int i = 0; i < inventory.getContainerSize(); i++){
                     ItemStack stack = inventory.getItem(i);
                     if(!stack.isEmpty()){
-                        LazyOptional<IEnergyStorage> optional = stack.getCapability(CapabilityEnergy.ENERGY);
-                        final int max = toTransfer;
-                        int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                        if(transferred > 0){
-                            inventory.setItem(i, stack);
-                            spawnParticles = true;
-                            this.energy -= transferred;
-                            this.dataChanged();
-                            if(this.energy <= 0)
-                                break loop;
-                            toTransfer -= transferred;
-                            if(toTransfer <= 0)
-                                continue loop;
+                        EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)));
+                        if(storage != null && storage.supportsInsertion()){
+                            try(Transaction transaction = Transaction.openOuter()){
+                                int transferred = (int)storage.insert(toTransfer, transaction);
+                                if(transferred > 0){
+                                    inventory.setItem(i, stack);
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    if(this.energy <= 0)
+                                        break loop;
+                                    toTransfer -= transferred;
+                                    if(toTransfer <= 0)
+                                        continue loop;
+                                }
+                            }
                         }
                     }
                 }
@@ -281,15 +288,6 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side){
-        if(cap == CapabilityEnergy.ENERGY && side != Direction.UP)
-            return this.capability.cast();
-        return super.getCapability(cap, side);
-    }
-
-    @Override
     public int receiveEnergy(int maxReceive, boolean simulate){
         int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 10));
         if(!simulate){
@@ -299,40 +297,16 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         return received;
     }
 
-    @Override
     public int extractEnergy(int maxExtract, boolean simulate){
         return 0;
     }
 
-    @Override
     public int getEnergyStored(){
         return this.energy;
     }
 
-    @Override
     public int getMaxEnergyStored(){
         return this.type.capacity.get();
-    }
-
-    @Override
-    public boolean canExtract(){
-        return false;
-    }
-
-    @Override
-    public boolean canReceive(){
-        return true;
-    }
-
-    @Override
-    public void onChunkUnloaded(){
-        this.capability.invalidate();
-        super.onChunkUnloaded();
-    }
-
-    @Override
-    public AABB getRenderBoundingBox(){
-        return this.highlightArea ? this.getOperatingArea() : new AABB(this.worldPosition);
     }
 
     public enum RedstoneMode {
