@@ -114,6 +114,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                                 spawnParticles = true;
                                 this.energy -= transferred;
                                 this.dataChanged();
+                                transaction.commit();
                                 if(this.energy <= 0)
                                     break;
                             }
@@ -146,6 +147,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                                         spawnParticles = true;
                                         this.energy -= transferred;
                                         this.dataChanged();
+                                        transaction.commit();
                                         if(this.energy <= 0)
                                             break loop;
                                         toTransfer -= transferred;
@@ -168,10 +170,10 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                             try(Transaction transaction = Transaction.openOuter()){
                                 int transferred = (int)storage.insert(toTransfer, transaction);
                                 if(transferred > 0){
-                                    inventory.setItem(i, stack);
                                     spawnParticles = true;
                                     this.energy -= transferred;
                                     this.dataChanged();
+                                    transaction.commit();
                                     if(this.energy <= 0)
                                         break loop;
                                     toTransfer -= transferred;
