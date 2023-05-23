@@ -33,6 +33,7 @@ public class WirelessChargers implements ModInitializer {
             handler.registerBlockEntityTypeCallback(type::registerBlockEntity);
             handler.registerItemCallback(type::registerItem);
         }
+        handler.registerBlockEntityTypeCallback(helper -> ChargerApiProviders.register());
     }
 
     public static void registerGenerators(){
