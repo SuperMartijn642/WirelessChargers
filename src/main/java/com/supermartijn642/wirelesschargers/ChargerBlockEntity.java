@@ -296,16 +296,16 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         return received;
     }
 
-    public int extractEnergy(int maxExtract, boolean simulate){
-        return 0;
-    }
-
     public int getEnergyStored(){
         return this.energy;
     }
 
     public int getMaxEnergyStored(){
         return this.type.capacity.get();
+    }
+
+    public void setEnergyStored(int energy){
+        this.energy = energy;
     }
 
     public enum RedstoneMode {
