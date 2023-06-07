@@ -16,18 +16,6 @@
     "hidden": false
   },
   "criteria": {
-    "has_block_charger": {
-      "trigger": "minecraft:inventory_changed",
-      "conditions": {
-        "items": [
-          {
-            "items": [
-              "wirelesschargers:basic_wireless_block_charger"
-            ]
-          }
-        ]
-      }
-    },
     "has_player_charger": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
@@ -35,6 +23,18 @@
           {
             "items": [
               "wirelesschargers:basic_wireless_player_charger"
+            ]
+          }
+        ]
+      }
+    },
+    "has_block_charger": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "wirelesschargers:basic_wireless_block_charger"
             ]
           }
         ]
