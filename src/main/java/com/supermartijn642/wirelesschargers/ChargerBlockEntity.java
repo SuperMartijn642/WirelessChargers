@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
@@ -80,7 +80,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     BlockEntity entity = this.level.getBlockEntity(pos);
                     boolean canAcceptEnergy = false;
                     for(Direction direction : CAPABILITY_DIRECTIONS){
-                        if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(CapabilityEnergy.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
+                        if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(ForgeCapabilities.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
                             this.chargeableBlocks.put(offset, direction);
                             canAcceptEnergy = true;
                             break;
@@ -110,7 +110,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
                     BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
                     LazyOptional<IEnergyStorage> optional;
-                    if(tile != null && (optional = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())).isPresent()){
+                    if(tile != null && (optional = tile.getCapability(ForgeCapabilities.ENERGY, entry.getValue())).isPresent()){
                         final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
                         int transferred = optional.map(storage -> storage.receiveEnergy(toTransfer, false)).orElse(0);
                         if(transferred > 0){
@@ -138,7 +138,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 for(int i = 0; i < handler.getSlots(); i++){
                     ItemStack stack = handler.getStackInSlot(i);
                     if(!stack.isEmpty()){
-                        LazyOptional<IEnergyStorage> optional = stack.getCapability(CapabilityEnergy.ENERGY);
+                        LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
                         final int max = toTransfer;
                         int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
                         if(transferred > 0){
@@ -159,7 +159,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 for(int i = 0; i < inventory.getContainerSize(); i++){
                     ItemStack stack = inventory.getItem(i);
                     if(!stack.isEmpty()){
-                        LazyOptional<IEnergyStorage> optional = stack.getCapability(CapabilityEnergy.ENERGY);
+                        LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
                         final int max = toTransfer;
                         int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
                         if(transferred > 0){
@@ -284,7 +284,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side){
-        if(cap == CapabilityEnergy.ENERGY && side != Direction.UP)
+        if(cap == ForgeCapabilities.ENERGY && side != Direction.UP)
             return this.capability.cast();
         return super.getCapability(cap, side);
     }

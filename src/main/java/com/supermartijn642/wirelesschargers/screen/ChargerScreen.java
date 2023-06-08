@@ -1,8 +1,8 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.supermartijn642.core.gui.ScreenUtils;
 import com.supermartijn642.core.gui.widget.BlockEntityBaseWidget;
+import com.supermartijn642.core.gui.widget.WidgetRenderContext;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -35,9 +35,9 @@ public class ChargerScreen extends BlockEntityBaseWidget<ChargerBlockEntity> {
     }
 
     @Override
-    protected void renderBackground(PoseStack poseStack, int mouseX, int mouseY, ChargerBlockEntity object){
-        ScreenUtils.drawScreenBackground(poseStack, this.x, this.y, this.width, this.height);
-        super.renderBackground(poseStack, mouseX, mouseY, object);
+    protected void renderBackground(WidgetRenderContext context, int mouseX, int mouseY, ChargerBlockEntity object){
+        ScreenUtils.drawScreenBackground(context.poseStack(), this.x, this.y, this.width, this.height);
+        super.renderBackground(context, mouseX, mouseY, object);
     }
 
     private int getEnergy(){
