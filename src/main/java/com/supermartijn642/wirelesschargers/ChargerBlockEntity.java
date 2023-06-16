@@ -291,7 +291,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     }
 
     public int receiveEnergy(int maxReceive, boolean simulate){
-        int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 10));
+        int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
         if(!simulate){
             this.energy += received;
             this.dataChanged();
