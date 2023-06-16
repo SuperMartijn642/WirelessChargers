@@ -25,7 +25,7 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
-        poseStack.mulPose(new Quaternionf().setAngleAxis((entity.renderingRotation + entity.renderingRotationSpeed * partialTicks) / 3 * 2 * Math.PI, 0, 1, 0));
+        poseStack.mulPose(new Quaternionf().setAngleAxis((entity.renderingRotation + entity.renderingRotationSpeed * partialTicks) / 3, 0, 1, 0));
         poseStack.translate(-0.5, 0, -0.5);
 
         RandomSource randomsource = RandomSource.create();
