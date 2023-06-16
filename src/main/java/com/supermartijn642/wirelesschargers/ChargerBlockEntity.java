@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -50,96 +51,120 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     @SuppressWarnings("UnstableApiUsage")
     @Override
     public void update(){
-        this.renderingTickCount++;
-
-        if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
-            this.renderingRotationSpeed = Math.max(0, this.renderingRotationSpeed - 0.02f);
+        if(this.level.isClientSide){
+            this.renderingTickCount++;
+            if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
+                this.renderingRotationSpeed = Math.max(0, this.renderingRotationSpeed - 0.02f);
+                this.renderingRotation += this.renderingRotationSpeed;
+                return;
+            }
+            this.renderingRotationSpeed = Math.min(this.renderingRotationSpeed + 0.02f, this.getEnergyFillPercentage());
             this.renderingRotation += this.renderingRotationSpeed;
-            return;
-        }
+        }else{
+            boolean spawnParticles = false;
+            if(this.type.canChargeBlocks){
+                // find blocks with the energy capability
+                for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
+                    BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
+                    BlockPos pos = this.worldPosition.offset(offset);
 
-        this.renderingRotationSpeed = Math.min(this.renderingRotationSpeed + 0.02f, this.getEnergyFillPercentage());
-        this.renderingRotation += this.renderingRotationSpeed;
-
-        boolean spawnParticles = false;
-
-        if(this.type.canChargeBlocks){
-            // find blocks with the energy capability
-            for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
-                BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
-                BlockPos pos = this.worldPosition.offset(offset);
-
-                if(!pos.equals(this.worldPosition)){
-                    BlockEntity entity = this.level.getBlockEntity(pos);
-                    boolean canAcceptEnergy = false;
-                    for(Direction direction : CAPABILITY_DIRECTIONS){
-                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
-                            EnergyStorage storage = EnergyStorage.SIDED.find(this.level, pos, entity.getBlockState(), entity, direction);
-                            if(storage != null && storage.supportsInsertion()){
-                                this.chargeableBlocks.put(offset, direction);
-                                canAcceptEnergy = true;
-                                break;
-                            }
-                        }
-                    }
-                    if(!canAcceptEnergy)
-                        this.chargeableBlocks.remove(offset);
-                }
-
-                int range = this.type.range.get();
-                this.blockSearchX++;
-                if(this.blockSearchX > range){
-                    this.blockSearchX = -range;
-                    this.blockSearchZ++;
-                    if(this.blockSearchZ > range){
-                        this.blockSearchZ = -range;
-                        this.blockSearchY++;
-                        if(this.blockSearchY > range)
-                            this.blockSearchY = -range;
-                    }
-                }
-            }
-
-            // charge block in the list
-            if(this.energy > 0){
-                Set<BlockPos> toRemove = new HashSet<>();
-                for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                    BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                    EnergyStorage storage;
-                    if(tile != null && (storage = EnergyStorage.SIDED.find(this.level, tile.getBlockPos(), tile.getBlockState(), tile, entry.getValue())) != null){
-                        try(Transaction transaction = Transaction.openOuter()){
-                            final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                            int transferred = (int)storage.insert(toTransfer, transaction);
-                            if(transferred > 0){
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                transaction.commit();
-                                if(this.energy <= 0)
+                    if(!pos.equals(this.worldPosition)){
+                        BlockEntity entity = this.level.getBlockEntity(pos);
+                        boolean canAcceptEnergy = false;
+                        for(Direction direction : CAPABILITY_DIRECTIONS){
+                            if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                                EnergyStorage storage = EnergyStorage.SIDED.find(this.level, pos, entity.getBlockState(), entity, direction);
+                                if(storage != null && storage.supportsInsertion()){
+                                    this.chargeableBlocks.put(offset, direction);
+                                    canAcceptEnergy = true;
                                     break;
+                                }
                             }
                         }
-                    }else
-                        toRemove.add(entry.getKey());
-                }
-                toRemove.forEach(this.chargeableBlocks::remove);
-            }
-        }
+                        if(!canAcceptEnergy)
+                            this.chargeableBlocks.remove(offset);
+                    }
 
-        // Charge players' items
-        if(this.type.canChargePlayers && this.energy > 0){
-            List<Player> players = this.level.getEntitiesOfClass(Player.class, this.getOperatingArea());
-            loop:
-            for(Player player : players){
-                int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                // Check Curios/Baubles slots
-                if(CommonUtils.isModLoaded("trinkets")){
-                    Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(player);
-                    if(component.isPresent()){
-                        for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
-                            ItemStack stack = slot.getB();
-                            EnergyStorage storage;
-                            if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack))) != null){
+                    int range = this.type.range.get();
+                    this.blockSearchX++;
+                    if(this.blockSearchX > range){
+                        this.blockSearchX = -range;
+                        this.blockSearchZ++;
+                        if(this.blockSearchZ > range){
+                            this.blockSearchZ = -range;
+                            this.blockSearchY++;
+                            if(this.blockSearchY > range)
+                                this.blockSearchY = -range;
+                        }
+                    }
+                }
+
+                // charge block in the list
+                if(this.energy > 0){
+                    Set<BlockPos> toRemove = new HashSet<>();
+                    for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
+                        BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
+                        EnergyStorage storage;
+                        if(tile != null && (storage = EnergyStorage.SIDED.find(this.level, tile.getBlockPos(), tile.getBlockState(), tile, entry.getValue())) != null){
+                            try(Transaction transaction = Transaction.openOuter()){
+                                final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                                int transferred = (int)storage.insert(toTransfer, transaction);
+                                if(transferred > 0){
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    transaction.commit();
+                                    if(this.energy <= 0)
+                                        break;
+                                }
+                            }
+                        }else
+                            toRemove.add(entry.getKey());
+                    }
+                    toRemove.forEach(this.chargeableBlocks::remove);
+                }
+            }
+
+            // Charge players' items
+            if(this.type.canChargePlayers && this.energy > 0){
+                List<Player> players = this.level.getEntitiesOfClass(Player.class, this.getOperatingArea());
+                loop:
+                for(Player player : players){
+                    int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                    // Check Curios/Baubles slots
+                    if(CommonUtils.isModLoaded("trinkets")){
+                        Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(player);
+                        if(component.isPresent()){
+                            for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
+                                ItemStack stack = slot.getB();
+                                EnergyStorage storage;
+                                if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack))) != null){
+                                    try(Transaction transaction = Transaction.openOuter()){
+                                        int transferred = (int)storage.insert(toTransfer, transaction);
+                                        if(transferred > 0){
+                                            spawnParticles = true;
+                                            this.energy -= transferred;
+                                            this.dataChanged();
+                                            transaction.commit();
+                                            if(this.energy <= 0)
+                                                break loop;
+                                            toTransfer -= transferred;
+                                            if(toTransfer <= 0)
+                                                continue loop;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Check player inventory
+                    Inventory inventory = player.getInventory();
+                    PlayerInventoryStorage inventoryStorage = PlayerInventoryStorage.of(player);
+                    for(int i = 0; i < inventory.getContainerSize(); i++){
+                        ItemStack stack = inventory.getItem(i);
+                        if(!stack.isEmpty()){
+                            EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)));
+                            if(storage != null && storage.supportsInsertion()){
                                 try(Transaction transaction = Transaction.openOuter()){
                                     final int max = toTransfer;
                                     int transferred = (int)storage.insert(toTransfer, transaction);
@@ -159,39 +184,14 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                         }
                     }
                 }
-                // Check player inventory
-                Inventory inventory = player.getInventory();
-                PlayerInventoryStorage inventoryStorage = PlayerInventoryStorage.of(player);
-                for(int i = 0; i < inventory.getContainerSize(); i++){
-                    ItemStack stack = inventory.getItem(i);
-                    if(!stack.isEmpty()){
-                        EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)));
-                        if(storage != null && storage.supportsInsertion()){
-                            try(Transaction transaction = Transaction.openOuter()){
-                                int transferred = (int)storage.insert(toTransfer, transaction);
-                                if(transferred > 0){
-                                    spawnParticles = true;
-                                    this.energy -= transferred;
-                                    this.dataChanged();
-                                    transaction.commit();
-                                    if(this.energy <= 0)
-                                        break loop;
-                                    toTransfer -= transferred;
-                                    if(toTransfer <= 0)
-                                        continue loop;
-                                }
-                            }
-                        }
-                    }
-                }
             }
-        }
 
-        if(spawnParticles && this.level.isClientSide && this.level.getRandom().nextDouble() <= this.getEnergyFillPercentage()){
-            double x = this.worldPosition.getX() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            double y = this.worldPosition.getY() + 0.7 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            double z = this.worldPosition.getZ() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
-            this.level.addParticle(DustParticleOptions.REDSTONE, x, y, z, 0.0D, 0.0D, 0.0D);
+            if(spawnParticles && this.level instanceof ServerLevel && this.level.getRandom().nextDouble() <= this.getEnergyFillPercentage()){
+                double x = this.worldPosition.getX() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
+                double y = this.worldPosition.getY() + 0.7 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
+                double z = this.worldPosition.getZ() + 0.5 + this.level.getRandom().nextFloat() * 0.8 - 0.4;
+                ((ServerLevel)this.level).sendParticles(DustParticleOptions.REDSTONE, x, y, z, 1, 0, 0, 0, 0);
+            }
         }
     }
 
