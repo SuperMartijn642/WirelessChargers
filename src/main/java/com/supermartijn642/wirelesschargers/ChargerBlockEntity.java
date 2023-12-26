@@ -14,14 +14,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -40,7 +36,6 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
     }
 
-    private final LazyOptional<IEnergyStorage> capability = LazyOptional.of(() -> this);
     public final ChargerType type;
     private int energy;
     private boolean highlightArea;
@@ -79,10 +74,13 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                         BlockEntity entity = this.level.getBlockEntity(pos);
                         boolean canAcceptEnergy = false;
                         for(Direction direction : CAPABILITY_DIRECTIONS){
-                            if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(ForgeCapabilities.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
-                                this.chargeableBlocks.put(offset, direction);
-                                canAcceptEnergy = true;
-                                break;
+                            if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                                IEnergyStorage storage = this.level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null, entity, direction);
+                                if(storage != null && storage.canReceive()){
+                                    this.chargeableBlocks.put(offset, direction);
+                                    canAcceptEnergy = true;
+                                    break;
+                                }
                             }
                         }
                         if(!canAcceptEnergy)
@@ -107,18 +105,21 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 if(this.energy > 0){
                     Set<BlockPos> toRemove = new HashSet<>();
                     for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                        BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                        LazyOptional<IEnergyStorage> optional;
-                        if(tile != null && (optional = tile.getCapability(ForgeCapabilities.ENERGY, entry.getValue())).isPresent()){
-                            final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                            int transferred = optional.map(storage -> storage.receiveEnergy(toTransfer, false)).orElse(0);
-                            if(transferred > 0){
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                if(this.energy <= 0)
-                                    break;
-                            }
+                        BlockEntity entity = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            IEnergyStorage storage = this.level.getCapability(Capabilities.EnergyStorage.BLOCK, entry.getKey(), null, entity, entry.getValue());
+                            if(storage != null && storage.canReceive()){
+                                final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                                int transferred = storage.receiveEnergy(toTransfer, false);
+                                if(transferred > 0){
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    if(this.energy <= 0)
+                                        break;
+                                }
+                            }else
+                                toRemove.add(entry.getKey());
                         }else
                             toRemove.add(entry.getKey());
                     }
@@ -137,19 +138,21 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     for(int i = 0; i < handler.getSlots(); i++){
                         ItemStack stack = handler.getStackInSlot(i);
                         if(!stack.isEmpty()){
-                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
-                            final int max = toTransfer;
-                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                            if(transferred > 0){
-                                handler.setStackInSlot(i, stack);
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                if(this.energy <= 0)
-                                    break loop;
-                                toTransfer -= transferred;
-                                if(toTransfer <= 0)
-                                    continue loop;
+                            IEnergyStorage storage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+                            if(storage != null && storage.canReceive()){
+                                final int max = toTransfer;
+                                int transferred = storage.receiveEnergy(max, false);
+                                if(transferred > 0){
+                                    handler.setStackInSlot(i, stack);
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    if(this.energy <= 0)
+                                        break loop;
+                                    toTransfer -= transferred;
+                                    if(toTransfer <= 0)
+                                        continue loop;
+                                }
                             }
                         }
                     }
@@ -158,19 +161,21 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     for(int i = 0; i < inventory.getContainerSize(); i++){
                         ItemStack stack = inventory.getItem(i);
                         if(!stack.isEmpty()){
-                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
-                            final int max = toTransfer;
-                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                            if(transferred > 0){
-                                inventory.setItem(i, stack);
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                if(this.energy <= 0)
-                                    break loop;
-                                toTransfer -= transferred;
-                                if(toTransfer <= 0)
-                                    continue loop;
+                            IEnergyStorage storage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+                            if(storage != null && storage.canReceive()){
+                                final int max = toTransfer;
+                                int transferred = storage.receiveEnergy(max, false);
+                                if(transferred > 0){
+                                    inventory.setItem(i, stack);
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    if(this.energy <= 0)
+                                        break loop;
+                                    toTransfer -= transferred;
+                                    if(toTransfer <= 0)
+                                        continue loop;
+                                }
                             }
                         }
                     }
@@ -281,14 +286,6 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }
     }
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side){
-        if(cap == ForgeCapabilities.ENERGY && side != Direction.UP)
-            return this.capability.cast();
-        return super.getCapability(cap, side);
-    }
-
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate){
         int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
@@ -322,17 +319,6 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     @Override
     public boolean canReceive(){
         return true;
-    }
-
-    @Override
-    public void onChunkUnloaded(){
-        this.capability.invalidate();
-        super.onChunkUnloaded();
-    }
-
-    @Override
-    public AABB getRenderBoundingBox(){
-        return this.highlightArea ? this.getOperatingArea() : new AABB(this.worldPosition);
     }
 
     public enum RedstoneMode {

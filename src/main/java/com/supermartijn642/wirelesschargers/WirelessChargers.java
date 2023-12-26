@@ -1,5 +1,6 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.item.CreativeItemGroup;
 import com.supermartijn642.core.network.PacketChannel;
 import com.supermartijn642.core.registry.GeneratorRegistrationHandler;
@@ -8,10 +9,8 @@ import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import com.supermartijn642.wirelesschargers.generators.*;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
@@ -22,14 +21,15 @@ public class WirelessChargers {
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
     public static final CreativeItemGroup GROUP = CreativeItemGroup.create("wirelesschargers", ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER::getItem);
 
-    public WirelessChargers(){
+    public WirelessChargers(IEventBus eventBus){
         CHANNEL.registerMessage(ToggleHighlightAreaPacket.class, ToggleHighlightAreaPacket::new, true);
         CHANNEL.registerMessage(CycleRedstoneModePacket.class, CycleRedstoneModePacket::new, true);
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(ModCompatibility::init);
+        eventBus.addListener(ModCompatibility::init);
 
         register();
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> WirelessChargersClient::register);
+        if(CommonUtils.getEnvironmentSide().isClient())
+            WirelessChargersClient.register();
         registerGenerators();
     }
 
@@ -40,6 +40,7 @@ public class WirelessChargers {
             handler.registerBlockEntityTypeCallback(type::registerBlockEntity);
             handler.registerItemCallback(type::registerItem);
         }
+        handler.registerBlockEntityTypeCallback(helper -> ChargerApiProviders.register());
     }
 
     public static void registerGenerators(){
