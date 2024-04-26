@@ -137,8 +137,10 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                         if(component.isPresent()){
                             for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
                                 ItemStack stack = slot.getB();
+                                if(stack.isEmpty())
+                                    continue;
                                 EnergyStorage storage;
-                                if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack))) != null){
+                                if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(new TrinketsSlotStorage(slot.getA(), stack)))) != null){
                                     try(Transaction transaction = Transaction.openOuter()){
                                         int transferred = (int)storage.insert(toTransfer, transaction);
                                         if(transferred > 0){
@@ -166,6 +168,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                             EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)));
                             if(storage != null && storage.supportsInsertion()){
                                 try(Transaction transaction = Transaction.openOuter()){
+                                    final int max = toTransfer;
                                     int transferred = (int)storage.insert(toTransfer, transaction);
                                     if(transferred > 0){
                                         spawnParticles = true;
