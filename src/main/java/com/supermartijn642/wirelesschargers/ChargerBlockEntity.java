@@ -103,7 +103,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 }
 
                 // charge block in the list
-                if(this.energy > 0){
+                if(this.energy > 0 && this.redstoneMode.canOperate(this.isRedstonePowered)){
                     Set<BlockPos> toRemove = new HashSet<>();
                     for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
                         TileEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
@@ -126,7 +126,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             }
 
             // Charge players' items
-            if(this.type.canChargePlayers && this.energy > 0){
+            if(this.type.canChargePlayers && this.energy > 0 && this.redstoneMode.canOperate(this.isRedstonePowered)){
                 List<PlayerEntity> players = this.level.getEntitiesOfClass(PlayerEntity.class, this.getOperatingArea());
                 loop:
                 for(PlayerEntity player : players){
