@@ -1,3 +1,7 @@
+### Wireless Chargers 1.0.9a
+- Fixed redstone toggle only having a visual effect
+- Fixed items in Trinkets slots not actually getting charged
+
 ### Wireless Chargers 1.0.9
 - Increased energy input rate limit for the chargers
 - Fixed crash when transferring energy
