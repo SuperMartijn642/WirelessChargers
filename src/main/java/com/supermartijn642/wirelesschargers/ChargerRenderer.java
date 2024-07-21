@@ -7,6 +7,7 @@ import com.supermartijn642.core.render.RenderUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -21,7 +22,7 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
     @Override
     public void render(ChargerBlockEntity entity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay){
-        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(entity.type.modelType.ringModel);
+        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(new ModelResourceLocation(entity.type.modelType.ringModel, ""));
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);

@@ -82,14 +82,15 @@ public class ChargerModelType {
     private static final ChargerModelType[] values = new ChargerModelType[]{BASIC_WIRELESS_BLOCK_CHARGER, ADVANCED_WIRELESS_BLOCK_CHARGER, BASIC_WIRELESS_PLAYER_CHARGER, ADVANCED_WIRELESS_PLAYER_CHARGER};
 
     public final BlockShape collisionShape, outlineShape;
-    public final ResourceLocation blockModel, ringModel;
+    public final ResourceLocation blockModel;
+    public final ResourceLocation ringModel;
     public final double ringYOffset;
 
     private ChargerModelType(BlockShape collisionShape, BlockShape outlineShape, String blockModel, String ringModel, double ringYOffset){
         this.collisionShape = collisionShape;
         this.outlineShape = outlineShape;
-        this.blockModel = new ResourceLocation("wirelesschargers", blockModel);
-        this.ringModel = new ResourceLocation("wirelesschargers", ringModel);
+        this.blockModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", blockModel);
+        this.ringModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", ringModel);
         this.ringYOffset = ringYOffset;
     }
 

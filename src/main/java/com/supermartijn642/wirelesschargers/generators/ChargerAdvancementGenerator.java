@@ -18,7 +18,7 @@ public class ChargerAdvancementGenerator extends AdvancementGenerator {
     public void generate(){
         this.advancement("wireless_charging")
             .icon(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
-            .background(new ResourceLocation("minecraft", "block/redstone_block"))
+            .background(ResourceLocation.fromNamespaceAndPath("minecraft", "block/redstone_block"))
             .hasItemsCriterion("has_player_charger", ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
             .hasItemsCriterion("has_block_charger", ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem())
             .requirementGroup("has_player_charger", "has_block_charger");
