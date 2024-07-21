@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 public class RedstoneModeButton extends AbstractButtonWidget {
 
-    private static final ResourceLocation BUTTONS = new ResourceLocation("wirelesschargers", "textures/screen/redstone_mode_buttons.png");
+    private static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "textures/screen/redstone_mode_buttons.png");
 
     private final Supplier<ChargerBlockEntity.RedstoneMode> redstoneMode;
 
