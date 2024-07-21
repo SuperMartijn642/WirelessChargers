@@ -2,7 +2,7 @@
   "parent": "wirelesschargers:wireless_charging",
   "display": {
     "icon": {
-      "item": "wirelesschargers:advanced_wireless_block_charger"
+      "id": "wirelesschargers:advanced_wireless_block_charger"
     },
     "title": {
       "translate": "wirelesschargers.advancement.no_more_cables.title"
@@ -21,9 +21,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "wirelesschargers:advanced_wireless_block_charger"
-            ]
+            "items": "wirelesschargers:advanced_wireless_block_charger"
           }
         ]
       }

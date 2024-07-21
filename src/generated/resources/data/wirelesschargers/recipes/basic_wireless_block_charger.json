@@ -7,19 +7,19 @@
   ],
   "key": {
     "A": {
-      "item": "minecraft:glowstone_dust"
+      "tag": "c:dusts/glowstone"
     },
     "B": {
-      "tag": "c:iron_ingots"
+      "tag": "c:ingots/iron"
     },
     "C": {
       "item": "minecraft:ender_pearl"
     },
     "D": {
-      "item": "minecraft:redstone_block"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "wirelesschargers:basic_wireless_block_charger"
+    "id": "wirelesschargers:basic_wireless_block_charger"
   }
 }

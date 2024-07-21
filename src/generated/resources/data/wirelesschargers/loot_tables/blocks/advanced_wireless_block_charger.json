@@ -10,8 +10,8 @@
       ],
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "wirelesschargers:advanced_wireless_block_charger"
+          "name": "wirelesschargers:advanced_wireless_block_charger",
+          "type": "minecraft:item"
         }
       ]
     }

@@ -7,10 +7,10 @@
   ],
   "key": {
     "A": {
-      "item": "minecraft:glowstone_dust"
+      "tag": "c:dusts/glowstone"
     },
     "B": {
-      "tag": "c:gold_ingots"
+      "tag": "c:ingots/gold"
     },
     "C": {
       "item": "wirelesschargers:basic_wireless_player_charger"
@@ -19,10 +19,10 @@
       "item": "minecraft:blaze_powder"
     },
     "E": {
-      "item": "minecraft:redstone_block"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "wirelesschargers:advanced_wireless_player_charger"
+    "id": "wirelesschargers:advanced_wireless_player_charger"
   }
 }

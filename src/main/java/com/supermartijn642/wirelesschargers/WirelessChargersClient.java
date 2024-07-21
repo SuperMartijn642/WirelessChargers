@@ -1,6 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.ClientUtils;
+import com.supermartijn642.core.block.BaseBlock;
 import com.supermartijn642.core.gui.WidgetScreen;
 import com.supermartijn642.core.registry.ClientRegistrationHandler;
 import com.supermartijn642.core.render.BlockEntityCustomItemRenderer;
@@ -29,10 +30,11 @@ public class WirelessChargersClient implements ClientModInitializer {
             ResourceLocation location = new ModelResourceLocation(new ResourceLocation("wirelesschargers:" + type.getRegistryName()), "inventory");
             handler.registerModelOverwrite(location, CustomRendererBakedModelWrapper::wrap);
             // Item renderer
+            //noinspection DataFlowIssue
             handler.registerCustomItemRenderer(type::getItem, () -> new BlockEntityCustomItemRenderer<>(
                 true,
                 () -> type.createBlockEntity(BlockPos.ZERO, type.getBlock().defaultBlockState()),
-                (stack, entity) -> entity.readData(stack.hasTag() ? stack.getTag().getCompound("tileData") : new CompoundTag())
+                (stack, entity) -> entity.readData(stack.has(BaseBlock.TILE_DATA) ? stack.get(BaseBlock.TILE_DATA) : new CompoundTag())
             ));
         }
         // Ring models
