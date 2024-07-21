@@ -137,20 +137,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     for(int i = 0; i < handler.getSlots(); i++){
                         ItemStack stack = handler.getStackInSlot(i);
                         if(!stack.isEmpty()){
-                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
-                            final int max = toTransfer;
-                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                            if(transferred > 0){
-                                handler.setStackInSlot(i, stack);
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                if(this.energy <= 0)
-                                    break loop;
-                                toTransfer -= transferred;
-                                if(toTransfer <= 0)
-                                    continue loop;
-                            }
+//                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY); // TODO
+//                            final int max = toTransfer;
+//                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
+//                            if(transferred > 0){
+//                                handler.setStackInSlot(i, stack);
+//                                spawnParticles = true;
+//                                this.energy -= transferred;
+//                                this.dataChanged();
+//                                if(this.energy <= 0)
+//                                    break loop;
+//                                toTransfer -= transferred;
+//                                if(toTransfer <= 0)
+//                                    continue loop;
+//                            }
                         }
                     }
                     // Check player inventory
@@ -158,20 +158,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     for(int i = 0; i < inventory.getContainerSize(); i++){
                         ItemStack stack = inventory.getItem(i);
                         if(!stack.isEmpty()){
-                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
-                            final int max = toTransfer;
-                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-                            if(transferred > 0){
-                                inventory.setItem(i, stack);
-                                spawnParticles = true;
-                                this.energy -= transferred;
-                                this.dataChanged();
-                                if(this.energy <= 0)
-                                    break loop;
-                                toTransfer -= transferred;
-                                if(toTransfer <= 0)
-                                    continue loop;
-                            }
+//                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY); // TODO
+//                            final int max = toTransfer;
+//                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
+//                            if(transferred > 0){
+//                                inventory.setItem(i, stack);
+//                                spawnParticles = true;
+//                                this.energy -= transferred;
+//                                this.dataChanged();
+//                                if(this.energy <= 0)
+//                                    break loop;
+//                                toTransfer -= transferred;
+//                                if(toTransfer <= 0)
+//                                    continue loop;
+//                            }
                         }
                     }
                 }
