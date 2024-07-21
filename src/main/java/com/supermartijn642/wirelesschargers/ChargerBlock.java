@@ -8,6 +8,7 @@ import com.supermartijn642.core.block.EntityHoldingBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -87,7 +88,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
     }
 
     @Override
-    protected void appendItemInformation(ItemStack stack, BlockGetter level, Consumer<Component> info, boolean advanced){
+    protected void appendItemInformation(ItemStack stack, Consumer<Component> info, boolean advanced){
         Component range = TextComponents.number(this.type.range.get() * 2 + 1).color(ChatFormatting.GOLD).get();
 
         // blocks
@@ -107,7 +108,8 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
         }
 
         // stored energy
-        int energy = stack.getTag() == null ? 0 : stack.getTag().getCompound("tileData").getInt("energy");
+        CompoundTag tag = stack.get(BaseBlock.TILE_DATA);
+        int energy = tag == null ? 0 : tag.getInt("energy");
         if(energy > 0){
             Component energyText = TextComponents.string(EnergyFormat.formatEnergy(energy)).color(ChatFormatting.GOLD).get();
             Component capacity = TextComponents.string(EnergyFormat.formatEnergy(this.type.capacity.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(ChatFormatting.GRAY).get();
@@ -115,7 +117,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
         }
 
         // redstone mode
-        int redstoneMode = stack.getTag() == null ? 2 : stack.getTag().getCompound("tileData").contains("redstoneMode") ? stack.getTag().getCompound("tileData").getInt("redstoneMode") : 2;
+        int redstoneMode = tag == null || !tag.contains("redstoneMode") ? 2 : tag.getInt("redstoneMode");
         if(redstoneMode != 2){
             ChargerBlockEntity.RedstoneMode mode = ChargerBlockEntity.RedstoneMode.fromIndex(redstoneMode);
             Component value = TextComponents.translation("wirelesschargers.screen.redstone_" + mode.name().toLowerCase(Locale.ROOT)).color(ChatFormatting.GOLD).get();

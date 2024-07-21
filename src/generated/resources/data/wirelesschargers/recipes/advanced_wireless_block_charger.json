@@ -7,10 +7,10 @@
   ],
   "key": {
     "A": {
-      "tag": "forge:dusts/glowstone"
+      "tag": "c:dusts/glowstone"
     },
     "B": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:ingots/iron"
     },
     "C": {
       "item": "wirelesschargers:basic_wireless_block_charger"
@@ -19,10 +19,10 @@
       "item": "minecraft:blaze_powder"
     },
     "E": {
-      "tag": "forge:storage_blocks/redstone"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "wirelesschargers:advanced_wireless_block_charger"
+    "id": "wirelesschargers:advanced_wireless_block_charger"
   }
 }

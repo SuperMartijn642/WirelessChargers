@@ -7,19 +7,19 @@
   ],
   "key": {
     "A": {
-      "tag": "forge:ingots/gold"
+      "tag": "c:ingots/gold"
     },
     "B": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:ingots/iron"
     },
     "C": {
-      "tag": "forge:ender_pearls"
+      "tag": "c:ender_pearls"
     },
     "D": {
-      "tag": "forge:storage_blocks/redstone"
+      "tag": "c:storage_blocks/redstone"
     }
   },
   "result": {
-    "item": "wirelesschargers:basic_wireless_player_charger"
+    "id": "wirelesschargers:basic_wireless_player_charger"
   }
 }
