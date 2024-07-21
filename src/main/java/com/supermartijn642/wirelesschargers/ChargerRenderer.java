@@ -22,7 +22,7 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
     @Override
     public void render(ChargerBlockEntity entity, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay){
-        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(new ModelResourceLocation(entity.type.modelType.ringModel, ""));
+        BakedModel model = ClientUtils.getMinecraft().getModelManager().getModel(new ModelResourceLocation(entity.type.modelType.ringModel, "standalone"));
 
         poseStack.pushPose();
         poseStack.translate(0.5, 0.05 * Math.sin((entity.renderingTickCount + partialTicks) % 100 / 100d * 2 * Math.PI), 0.5);
