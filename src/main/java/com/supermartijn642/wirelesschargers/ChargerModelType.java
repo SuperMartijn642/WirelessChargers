@@ -88,8 +88,8 @@ public class ChargerModelType {
     private ChargerModelType(BlockShape collisionShape, BlockShape outlineShape, String blockModel, String ringModel, double ringYOffset){
         this.collisionShape = collisionShape;
         this.outlineShape = outlineShape;
-        this.blockModel = new ResourceLocation("wirelesschargers", blockModel);
-        this.ringModel = new ResourceLocation("wirelesschargers", ringModel);
+        this.blockModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", blockModel);
+        this.ringModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", ringModel);
         this.ringYOffset = ringYOffset;
     }
 

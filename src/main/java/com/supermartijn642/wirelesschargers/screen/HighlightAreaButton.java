@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  */
 public class HighlightAreaButton extends AbstractButtonWidget {
 
-    private static final ResourceLocation BUTTONS = new ResourceLocation("wirelesschargers", "textures/screen/highlight_area_buttons.png");
+    private static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "textures/screen/highlight_area_buttons.png");
 
     private final Supplier<Boolean> highlightArea;
 

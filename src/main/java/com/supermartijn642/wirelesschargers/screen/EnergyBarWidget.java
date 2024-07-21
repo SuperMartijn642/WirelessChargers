@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  */
 public class EnergyBarWidget extends AbstractButtonWidget {
 
-    private static final ResourceLocation BARS = new ResourceLocation("wirelesschargers", "textures/screen/energy_bars.png");
+    private static final ResourceLocation BARS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "textures/screen/energy_bars.png");
 
     private final Supplier<Integer> energy, capacity;
 
