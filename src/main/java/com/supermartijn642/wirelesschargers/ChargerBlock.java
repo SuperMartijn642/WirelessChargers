@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -131,9 +132,9 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos neighborPos, boolean p_220069_6_){
-        BlockEntity entity = world.getBlockEntity(pos);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean isMoving){
+        BlockEntity entity = level.getBlockEntity(pos);
         if(entity instanceof ChargerBlockEntity)
-            ((ChargerBlockEntity)entity).setRedstonePowered(world.hasNeighborSignal(pos));
+            ((ChargerBlockEntity)entity).setRedstonePowered(level.hasNeighborSignal(pos));
     }
 }

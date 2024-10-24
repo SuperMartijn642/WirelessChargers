@@ -6,21 +6,11 @@
     "DED"
   ],
   "key": {
-    "A": {
-      "tag": "c:dusts/glowstone"
-    },
-    "B": {
-      "tag": "c:ingots/iron"
-    },
-    "C": {
-      "item": "wirelesschargers:basic_wireless_block_charger"
-    },
-    "D": {
-      "item": "minecraft:blaze_powder"
-    },
-    "E": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "A": "#c:dusts/glowstone",
+    "B": "#c:ingots/iron",
+    "C": "wirelesschargers:basic_wireless_block_charger",
+    "D": "minecraft:blaze_powder",
+    "E": "#c:storage_blocks/redstone"
   },
   "result": {
     "id": "wirelesschargers:advanced_wireless_block_charger"
