@@ -38,8 +38,7 @@ public class HighlightAreaButton extends AbstractButtonWidget {
 
     @Override
     public void render(WidgetRenderContext context, int mouseX, int mouseY){
-        ScreenUtils.bindTexture(BUTTONS);
-        ScreenUtils.drawTexture(context.poseStack(), this.x, this.y, this.width, this.height, this.highlightArea.get() ? 0 : 1 / 2f, (this.isFocused() ? 1 : 0) / 3f, 1 / 2f, 1 / 3f);
+        ScreenUtils.drawTexture(BUTTONS, context.poseStack(), this.x, this.y, this.width, this.height, this.highlightArea.get() ? 0 : 1 / 2f, (this.isFocused() ? 1 : 0) / 3f, 1 / 2f, 1 / 3f);
     }
 
     @Override
