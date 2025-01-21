@@ -41,7 +41,8 @@ public class WirelessChargers {
     public static void registerGenerators(){
         GeneratorRegistrationHandler handler = GeneratorRegistrationHandler.get("wirelesschargers");
         handler.addGenerator(ChargerBlockStateGenerator::new);
-        handler.addGenerator(ChargerItemInfoGenerator::new);
+        //noinspection Convert2MethodRef
+        handler.addGenerator(cache -> new ChargerItemInfoGenerator(cache));
         handler.addGenerator(ChargerLanguageGenerator::new);
         handler.addGenerator(ChargerLootTableGenerator::new);
         handler.addGenerator(ChargerRecipeGenerator::new);
