@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -42,7 +43,7 @@ public class ChargerSpecialModelRenderer implements SpecialModelRenderer.Unbaked
                 entity.readData(data == null ? new CompoundTag() : data);
                 BlockEntityRenderer<ChargerBlockEntity> renderer = ClientUtils.getMinecraft().getBlockEntityRenderDispatcher().getRenderer(entity);
                 //noinspection DataFlowIssue
-                renderer.render(entity, ClientUtils.getPartialTicks(), poseStack, bufferSource, combinedLight, combinedOverlay);
+                renderer.render(entity, ClientUtils.getPartialTicks(), poseStack, bufferSource, combinedLight, combinedOverlay, Vec3.ZERO);
             }
 
             @Override

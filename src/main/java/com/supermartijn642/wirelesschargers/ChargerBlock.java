@@ -89,7 +89,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
     }
 
     @Override
-    protected void appendItemInformation(ItemStack stack, Consumer<Component> info, boolean advanced){
+    public void appendItemInformation(ItemStack stack, Consumer<Component> info, boolean advanced){
         Component range = TextComponents.number(this.type.range.get() * 2 + 1).color(ChatFormatting.GOLD).get();
 
         // blocks
@@ -110,7 +110,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
 
         // stored energy
         CompoundTag tag = stack.get(BaseBlock.TILE_DATA);
-        int energy = tag == null ? 0 : tag.getInt("energy");
+        int energy = tag == null ? 0 : tag.getIntOr("energy", 0);
         if(energy > 0){
             Component energyText = TextComponents.string(EnergyFormat.formatEnergy(energy)).color(ChatFormatting.GOLD).get();
             Component capacity = TextComponents.string(EnergyFormat.formatEnergy(this.type.capacity.get())).color(ChatFormatting.GOLD).string(" " + EnergyFormat.formatUnit()).color(ChatFormatting.GRAY).get();
@@ -118,7 +118,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
         }
 
         // redstone mode
-        int redstoneMode = tag == null || !tag.contains("redstoneMode") ? 2 : tag.getInt("redstoneMode");
+        int redstoneMode = tag == null ? 2 : tag.getIntOr("redstoneMode", 2);
         if(redstoneMode != 2){
             ChargerBlockEntity.RedstoneMode mode = ChargerBlockEntity.RedstoneMode.fromIndex(redstoneMode);
             Component value = TextComponents.translation("wirelesschargers.screen.redstone_" + mode.name().toLowerCase(Locale.ROOT)).color(ChatFormatting.GOLD).get();

@@ -44,7 +44,7 @@ dependencies {
 
     // Core library
 //    modImplementation "curse.maven:supermartijn642s-core-lib-454372:${core_library_file}"
-    modImplementation "something:supermartijn642corelib:1.1.17c-dev-fabric-mc1.21.4"
+    modImplementation "a:supermartijn642corelib:1.1.18-fabric-mc1.21.5"
     // Config library
     modImplementation "curse.maven:supermartijn642s-config-lib-438332:${project.config_library_file}"
 
