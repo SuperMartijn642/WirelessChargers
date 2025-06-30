@@ -1,14 +1,15 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.render.CustomBlockEntityRenderer;
 import com.supermartijn642.core.render.RenderUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.client.RenderTypeHelper;
 import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Quaternionf;
 
@@ -30,18 +31,18 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
 
         RandomSource randomsource = RandomSource.create();
         randomsource.setSeed(42);
-        for(RenderType renderType : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
-            ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-                poseStack.last(), bufferSource.getBuffer(renderType), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, renderType
+        for(ChunkSectionLayer layer : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
+            ModelBlockRenderer.renderModel(
+                poseStack.last(), bufferSource.getBuffer(RenderTypeHelper.getEntityRenderType(layer)), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, layer
             );
         }
 
         poseStack.translate(0, entity.type.modelType.ringYOffset, 0);
 
         randomsource.setSeed(42);
-        for(RenderType renderType : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
-            ClientUtils.getBlockRenderer().getModelRenderer().renderModel(
-                poseStack.last(), bufferSource.getBuffer(renderType), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, renderType
+        for(ChunkSectionLayer layer : model.getRenderTypes(entity.getBlockState(), randomsource, ModelData.EMPTY)){
+            ModelBlockRenderer.renderModel(
+                poseStack.last(), bufferSource.getBuffer(RenderTypeHelper.getEntityRenderType(layer)), model, 1, 1, 1, combinedLight, combinedOverlay, ModelData.EMPTY, layer
             );
         }
 

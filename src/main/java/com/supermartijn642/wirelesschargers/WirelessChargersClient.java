@@ -8,8 +8,6 @@ import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -17,7 +15,6 @@ import java.util.Map;
 /**
  * Created 7/1/2021 by SuperMartijn642
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class WirelessChargersClient {
 
     private static final Map<ChargerType,BlockStateModel> RING_MODELS = new EnumMap<>(ChargerType.class);

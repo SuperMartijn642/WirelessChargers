@@ -9,6 +9,7 @@ import com.supermartijn642.wirelesschargers.generators.*;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
 import net.minecraftforge.fml.common.Mod;
+import org.slf4j.Logger;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
@@ -18,6 +19,7 @@ public class WirelessChargers {
 
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
     public static final CreativeItemGroup GROUP = CreativeItemGroup.create("wirelesschargers", ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER::getItem);
+    public static final Logger LOGGER = CommonUtils.getLogger("wirelesschargers");
 
     public WirelessChargers(){
         CHANNEL.registerMessage(ToggleHighlightAreaPacket.class, ToggleHighlightAreaPacket::new, true);
@@ -40,6 +42,7 @@ public class WirelessChargers {
 
     public static void registerGenerators(){
         GeneratorRegistrationHandler handler = GeneratorRegistrationHandler.get("wirelesschargers");
+        handler.addGenerator(ChargerAtlasSourceGenerator::new);
         handler.addGenerator(ChargerBlockStateGenerator::new);
         //noinspection Convert2MethodRef
         handler.addGenerator(cache -> new ChargerItemInfoGenerator(cache));
