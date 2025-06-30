@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:screen/highlight_area_buttons"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:screen/energy_bars"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "wirelesschargers:screen/redstone_mode_buttons"
+    }
+  ]
+}

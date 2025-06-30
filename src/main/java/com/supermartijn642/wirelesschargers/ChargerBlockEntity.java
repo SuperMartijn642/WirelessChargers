@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,6 +19,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import team.reborn.energy.api.EnergyStorage;
 
@@ -229,16 +230,15 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     }
 
     @Override
-    protected CompoundTag writeData(){
-        CompoundTag compound = new CompoundTag();
-        compound.putInt("energy", this.energy);
-        compound.putBoolean("highlightArea", this.highlightArea);
-        compound.putInt("redstoneMode", this.redstoneMode.index);
-        compound.putBoolean("isRedstonePowered", this.isRedstonePowered);
+    protected void writeData(ValueOutput output){
+        output.putInt("energy", this.energy);
+        output.putBoolean("highlightArea", this.highlightArea);
+        output.putInt("redstoneMode", this.redstoneMode.index);
+        output.putBoolean("isRedstonePowered", this.isRedstonePowered);
         if(this.type.canChargeBlocks){
-            compound.putInt("blockSearchX", this.blockSearchX);
-            compound.putInt("blockSearchY", this.blockSearchX);
-            compound.putInt("blockSearchZ", this.blockSearchX);
+            output.putInt("blockSearchX", this.blockSearchX);
+            output.putInt("blockSearchY", this.blockSearchX);
+            output.putInt("blockSearchZ", this.blockSearchX);
             int[] arr = new int[this.chargeableBlocks.size() * 4];
             int index = 0;
             for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
@@ -248,39 +248,37 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().get3DDataValue();
                 index++;
             }
-            compound.putIntArray("chargeableBlocks", arr);
+            output.putIntArray("chargeableBlocks", arr);
         }
-        return compound;
     }
 
     @Override
-    public CompoundTag writeItemStackData(){
-        CompoundTag compound = this.writeData();
-        if(compound.getIntOr("energy", 0) <= 0 && compound.getIntOr("redstoneMode", 2) == 2)
-            return null;
+    public void writeItemStackData(ValueOutput output){
+        if(this.energy <= 0 && this.redstoneMode == RedstoneMode.DISABLED)
+            return;
 
-        compound.remove("highlightArea");
-        compound.remove("isRedstonePowered");
+        this.writeData(output);
+        output.discard("highlightArea");
+        output.discard("isRedstonePowered");
         if(this.type.canChargeBlocks){
-            compound.remove("blockSearchX");
-            compound.remove("blockSearchY");
-            compound.remove("blockSearchZ");
-            compound.remove("chargeableBlocks");
+            output.discard("blockSearchX");
+            output.discard("blockSearchY");
+            output.discard("blockSearchZ");
+            output.discard("chargeableBlocks");
         }
-        return compound;
     }
 
     @Override
-    protected void readData(CompoundTag compound){
-        this.energy = compound.getIntOr("energy", 0);
-        this.highlightArea = compound.getBooleanOr("highlightArea", false);
-        this.redstoneMode = RedstoneMode.fromIndex(compound.getIntOr("redstoneMode", 0));
-        this.isRedstonePowered = compound.getBooleanOr("isRedstonePowered", false);
-        if(this.type.canChargeBlocks && compound.contains("chargeableBlocks")){
-            this.blockSearchX = compound.getIntOr("blockSearchX", 0);
-            this.blockSearchY = compound.getIntOr("blockSearchY", 0);
-            this.blockSearchZ = compound.getIntOr("blockSearchZ", 0);
-            int[] arr = compound.getIntArray("chargeableBlocks").orElseGet(() -> new int[0]);
+    protected void readData(ValueInput input){
+        this.energy = input.getIntOr("energy", 0);
+        this.highlightArea = input.getBooleanOr("highlightArea", false);
+        this.redstoneMode = RedstoneMode.fromIndex(input.getIntOr("redstoneMode", 0));
+        this.isRedstonePowered = input.getBooleanOr("isRedstonePowered", false);
+        if(this.type.canChargeBlocks && input.getIntArray("chargeableBlocks").isPresent()){
+            this.blockSearchX = input.getIntOr("blockSearchX", 0);
+            this.blockSearchY = input.getIntOr("blockSearchY", 0);
+            this.blockSearchZ = input.getIntOr("blockSearchZ", 0);
+            int[] arr = input.getIntArray("chargeableBlocks").orElseGet(() -> new int[0]);
             this.chargeableBlocks.clear();
             for(int i = 0; i < arr.length / 4; i++)
                 this.chargeableBlocks.put(

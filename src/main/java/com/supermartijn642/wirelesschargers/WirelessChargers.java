@@ -1,5 +1,6 @@
 package com.supermartijn642.wirelesschargers;
 
+import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.item.CreativeItemGroup;
 import com.supermartijn642.core.network.PacketChannel;
 import com.supermartijn642.core.registry.GeneratorRegistrationHandler;
@@ -8,6 +9,7 @@ import com.supermartijn642.wirelesschargers.generators.*;
 import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
 import net.fabricmc.api.ModInitializer;
+import org.slf4j.Logger;
 
 /**
  * Created 7/7/2020 by SuperMartijn642
@@ -16,6 +18,7 @@ public class WirelessChargers implements ModInitializer {
 
     public static final PacketChannel CHANNEL = PacketChannel.create("wirelesschargers");
     public static final CreativeItemGroup GROUP = CreativeItemGroup.create("wirelesschargers", ChargerType.ADVANCED_WIRELESS_BLOCK_CHARGER::getItem);
+    public static final Logger LOGGER = CommonUtils.getLogger("wirelesschargers");
 
     @Override
     public void onInitialize(){
@@ -38,6 +41,7 @@ public class WirelessChargers implements ModInitializer {
 
     public static void registerGenerators(){
         GeneratorRegistrationHandler handler = GeneratorRegistrationHandler.get("wirelesschargers");
+        handler.addGenerator(ChargerAtlasSourceGenerator::new);
         handler.addGenerator(ChargerBlockStateGenerator::new);
         //noinspection Convert2MethodRef
         handler.addGenerator(cache -> new ChargerItemInfoGenerator(cache));

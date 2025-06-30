@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.supermartijn642.core.ClientUtils;
+import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.block.BaseBlock;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -11,10 +12,15 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
+
+import java.util.Set;
 
 /**
  * Created 26/12/2024 by SuperMartijn642
@@ -40,10 +46,14 @@ public class ChargerSpecialModelRenderer implements SpecialModelRenderer.Unbaked
             @Override
             public void render(@Nullable CompoundTag data, ItemDisplayContext displayContext, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, boolean hasFoil){
                 ChargerBlockEntity entity = ChargerSpecialModelRenderer.this.getEntity();
-                entity.readData(data == null ? new CompoundTag() : data);
+                entity.readData(TagValueInput.create(new ProblemReporter.ScopedCollector(entity.problemPath(), WirelessChargers.LOGGER), CommonUtils.getRegistryAccess(), data));
                 BlockEntityRenderer<ChargerBlockEntity> renderer = ClientUtils.getMinecraft().getBlockEntityRenderDispatcher().getRenderer(entity);
                 //noinspection DataFlowIssue
                 renderer.render(entity, ClientUtils.getPartialTicks(), poseStack, bufferSource, combinedLight, combinedOverlay, Vec3.ZERO);
+            }
+
+            @Override
+            public void getExtents(Set<Vector3f> set){
             }
 
             @Override
