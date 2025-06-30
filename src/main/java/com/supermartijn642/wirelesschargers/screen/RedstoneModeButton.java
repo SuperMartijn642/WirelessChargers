@@ -1,7 +1,7 @@
 package com.supermartijn642.wirelesschargers.screen;
 
 import com.supermartijn642.core.TextComponents;
-import com.supermartijn642.core.gui.ScreenUtils;
+import com.supermartijn642.core.gui.GuiGraphicsHelper;
 import com.supermartijn642.core.gui.widget.WidgetRenderContext;
 import com.supermartijn642.core.gui.widget.premade.AbstractButtonWidget;
 import com.supermartijn642.core.util.Holder;
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 public class RedstoneModeButton extends AbstractButtonWidget {
 
-    private static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "textures/screen/redstone_mode_buttons.png");
+    public static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "screen/redstone_mode_buttons");
 
     private final Supplier<ChargerBlockEntity.RedstoneMode> redstoneMode;
 
@@ -39,8 +39,8 @@ public class RedstoneModeButton extends AbstractButtonWidget {
     }
 
     @Override
-    public void render(WidgetRenderContext context, int mouseX, int mouseY){
-        ScreenUtils.drawTexture(BUTTONS, context.poseStack(), this.x, this.y, this.width, this.height, this.redstoneMode.get().index / 3f, (this.isFocused() ? 1 : 0) / 3f, 1 / 3f, 1 / 3f);
+    public void render(WidgetRenderContext context, GuiGraphicsHelper graphics, int mouseX, int mouseY){
+        graphics.submitSprite(BUTTONS, this.x, this.y, this.width, this.height, p -> p.uv(this.redstoneMode.get().index / 3f, (this.isFocused() ? 1 : 0) / 3f, 1 / 3f, 1 / 3f));
     }
 
     @Override

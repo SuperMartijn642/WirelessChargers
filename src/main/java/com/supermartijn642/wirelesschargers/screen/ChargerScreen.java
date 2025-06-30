@@ -1,6 +1,6 @@
 package com.supermartijn642.wirelesschargers.screen;
 
-import com.supermartijn642.core.gui.ScreenUtils;
+import com.supermartijn642.core.gui.GuiGraphicsHelper;
 import com.supermartijn642.core.gui.widget.BlockEntityBaseWidget;
 import com.supermartijn642.core.gui.widget.WidgetRenderContext;
 import com.supermartijn642.wirelesschargers.ChargerBlockEntity;
@@ -35,9 +35,9 @@ public class ChargerScreen extends BlockEntityBaseWidget<ChargerBlockEntity> {
     }
 
     @Override
-    protected void renderBackground(WidgetRenderContext context, int mouseX, int mouseY, ChargerBlockEntity object){
-        ScreenUtils.drawScreenBackground(context.poseStack(), this.x, this.y, this.width, this.height);
-        super.renderBackground(context, mouseX, mouseY, object);
+    protected void renderBackground(WidgetRenderContext context, GuiGraphicsHelper graphics, int mouseX, int mouseY, ChargerBlockEntity object){
+        graphics.submitDefaultScreenBackground(this.x, this.y, this.width, this.height);
+        super.renderBackground(context, graphics, mouseX, mouseY, object);
     }
 
     private int getEnergy(){
