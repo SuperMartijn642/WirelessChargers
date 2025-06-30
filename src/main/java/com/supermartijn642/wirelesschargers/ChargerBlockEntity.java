@@ -135,20 +135,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     for(int i = 0; i < inventory.getContainerSize(); i++){
                         ItemStack stack = inventory.getItem(i);
                         if(!stack.isEmpty()){
-//                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY); // TODO
-//                            final int max = toTransfer;
-//                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
-//                            if(transferred > 0){
-//                                inventory.setItem(i, stack);
-//                                spawnParticles = true;
-//                                this.energy -= transferred;
-//                                this.dataChanged();
-//                                if(this.energy <= 0)
-//                                    break loop;
-//                                toTransfer -= transferred;
-//                                if(toTransfer <= 0)
-//                                    continue loop;
-//                            }
+                            LazyOptional<IEnergyStorage> optional = stack.getCapability(ForgeCapabilities.ENERGY);
+                            final int max = toTransfer;
+                            int transferred = optional.map(storage -> storage.receiveEnergy(max, false)).orElse(0);
+                            if(transferred > 0){
+                                inventory.setItem(i, stack);
+                                spawnParticles = true;
+                                this.energy -= transferred;
+                                this.dataChanged();
+                                if(this.energy <= 0)
+                                    break loop;
+                                toTransfer -= transferred;
+                                if(toTransfer <= 0)
+                                    continue loop;
+                            }
                         }
                     }
                 }
@@ -224,7 +224,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     @Override
     public CompoundTag writeItemStackData(){
         CompoundTag compound = this.writeData();
-        if(compound.getInt("energy") <= 0 && compound.getInt("redstoneMode") == 2)
+        if(compound.getIntOr("energy", 0) <= 0 && compound.getIntOr("redstoneMode", 2) == 2)
             return null;
 
         compound.remove("highlightArea");
@@ -240,15 +240,15 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     @Override
     protected void readData(CompoundTag compound){
-        this.energy = compound.getInt("energy");
-        this.highlightArea = compound.getBoolean("highlightArea");
-        this.redstoneMode = RedstoneMode.fromIndex(compound.getInt("redstoneMode"));
-        this.isRedstonePowered = compound.getBoolean("isRedstonePowered");
+        this.energy = compound.getIntOr("energy", 0);
+        this.highlightArea = compound.getBooleanOr("highlightArea", false);
+        this.redstoneMode = RedstoneMode.fromIndex(compound.getIntOr("redstoneMode", 0));
+        this.isRedstonePowered = compound.getBooleanOr("isRedstonePowered", false);
         if(this.type.canChargeBlocks && compound.contains("chargeableBlocks")){
-            this.blockSearchX = compound.getInt("blockSearchX");
-            this.blockSearchY = compound.getInt("blockSearchY");
-            this.blockSearchZ = compound.getInt("blockSearchZ");
-            int[] arr = compound.getIntArray("chargeableBlocks");
+            this.blockSearchX = compound.getIntOr("blockSearchX", 0);
+            this.blockSearchY = compound.getIntOr("blockSearchY", 0);
+            this.blockSearchZ = compound.getIntOr("blockSearchZ", 0);
+            int[] arr = compound.getIntArray("chargeableBlocks").orElseGet(() -> new int[0]);
             this.chargeableBlocks.clear();
             for(int i = 0; i < arr.length / 4; i++)
                 this.chargeableBlocks.put(
