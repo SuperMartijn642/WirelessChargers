@@ -4,7 +4,7 @@ import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.gui.WidgetScreen;
 import com.supermartijn642.core.registry.ClientRegistrationHandler;
 import com.supermartijn642.wirelesschargers.screen.ChargerScreen;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class WirelessChargersClient {
 
-    private static final Map<ChargerType,BakedModel> RING_MODELS = new EnumMap<>(ChargerType.class);
+    private static final Map<ChargerType,BlockStateModel> RING_MODELS = new EnumMap<>(ChargerType.class);
 
     public static void register(){
         ClientRegistrationHandler handler = ClientRegistrationHandler.get("wirelesschargers");
@@ -26,7 +26,7 @@ public class WirelessChargersClient {
             handler.registerCustomBlockEntityRenderer(type::getBlockEntityType, ChargerRenderer::new);
             handler.registerBlockSpecialModelRenderer(type::getBlock, () -> new ChargerSpecialModelRenderer(type));
             // Ring models
-            handler.registerModelConsumer(type.modelType.ringModel, model -> RING_MODELS.put(type, model));
+            handler.registerBlockModelConsumer(type.modelType.ringModel, model -> RING_MODELS.put(type, model));
         }
         // Special model renderer
         handler.registerSpecialModelRenderer("charger", ChargerSpecialModelRenderer.CODEC);
@@ -36,7 +36,7 @@ public class WirelessChargersClient {
         ClientUtils.displayScreen(WidgetScreen.of(new ChargerScreen(title, level, pos)));
     }
 
-    public static BakedModel getRingModel(ChargerType type){
+    public static BlockStateModel getRingModel(ChargerType type){
         return RING_MODELS.get(type);
     }
 }

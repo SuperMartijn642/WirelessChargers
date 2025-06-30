@@ -1,4 +1,4 @@
-// 1.21.4	2024-12-27T17:32:51.7782273	Core Lib Generators
+// 1.21.5	2025-06-30T14:42:55.2278228	Core Lib Generators
 3b8ed743f66d4f483edb939159ce1e08dd7a3fd7 assets/wirelesschargers/blockstates/advanced_wireless_block_charger.json
 3b8ed743f66d4f483edb939159ce1e08dd7a3fd7 assets/wirelesschargers/blockstates/advanced_wireless_player_charger.json
 30dfc963474bd858e596423af6e7090fe8b4bd46 assets/wirelesschargers/blockstates/basic_wireless_block_charger.json
@@ -8,8 +8,8 @@
 c72014c47bb63ece8dbc40cad6b3f2cd41bf6bb5 assets/wirelesschargers/items/basic_wireless_block_charger.json
 42f4496a524b7f4a4b821cd4e4982b2570d55ead assets/wirelesschargers/items/basic_wireless_player_charger.json
 811921bca425ed4ab9f47b6010ad9d2d50f250d0 assets/wirelesschargers/lang/en_us.json
-8f7e6ca93f32f2d16bd4bf3803ac187eafdd3bd1 data/minecraft/tags/block/mineable/pickaxe.json
-7e97caa1cf4127a14514f1818e76580633e4aeeb data/minecraft/tags/block/needs_stone_tool.json
+856ab7b89c3e215077eca59c314ce5dd2029db70 data/minecraft/tags/block/mineable/pickaxe.json
+523578299c1d7f0a4eb821e4fd895339302d6d6f data/minecraft/tags/block/needs_stone_tool.json
 49865278125bb17ead9a13fbc74e468c6c4bff56 data/wirelesschargers/advancement/no_more_batteries.json
 1301ccf21af83d71297d027821a2e2301359eec8 data/wirelesschargers/advancement/no_more_cables.json
 4d470c1892c6d9f344f9cd5075d13953872f14d8 data/wirelesschargers/advancement/recipes/misc/advanced_wireless_block_charger.json
