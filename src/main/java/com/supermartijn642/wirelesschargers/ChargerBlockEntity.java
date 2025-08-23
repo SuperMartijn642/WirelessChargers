@@ -31,13 +31,13 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
-    private static final Set<Direction> CAPABILITY_DIRECTIONS;
+    private static final List<Direction> CAPABILITY_DIRECTIONS;
 
     static{
-        Set<Direction> directions = new HashSet<>();
+        List<Direction> directions = new ArrayList<>(7);
         directions.add(null);
         directions.addAll(Arrays.asList(Direction.values()));
-        CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
+        CAPABILITY_DIRECTIONS = Collections.unmodifiableList(directions);
     }
 
     private final LazyOptional<IEnergyStorage> capability = LazyOptional.of(() -> this);
@@ -47,7 +47,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     private RedstoneMode redstoneMode = RedstoneMode.DISABLED;
     private boolean isRedstonePowered;
     private int blockSearchX, blockSearchY, blockSearchZ;
-    private final Map<BlockPos,Direction> chargeableBlocks = new LinkedHashMap<>();
+    private final Map<BlockPos,List<Direction>> chargeableBlocks = new LinkedHashMap<>();
     public int renderingTickCount = 0;
     public float renderingRotationSpeed, renderingRotation;
 
@@ -70,6 +70,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }else{
             boolean spawnParticles = false;
             if(this.type.canChargeBlocks){
+                List<Direction> chargeableDirections = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
                 // find blocks with the energy capability
                 for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
                     BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
@@ -77,16 +78,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
                     if(!pos.equals(this.worldPosition)){
                         BlockEntity entity = this.level.getBlockEntity(pos);
-                        boolean canAcceptEnergy = false;
-                        for(Direction direction : CAPABILITY_DIRECTIONS){
-                            if(entity != null && !(entity instanceof ChargerBlockEntity) && entity.getCapability(ForgeCapabilities.ENERGY, direction).map(IEnergyStorage::canReceive).orElse(false)){
-                                this.chargeableBlocks.put(offset, direction);
-                                canAcceptEnergy = true;
-                                break;
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            for(Direction direction : CAPABILITY_DIRECTIONS){
+                                Optional<IEnergyStorage> storage = entity.getCapability(ForgeCapabilities.ENERGY, direction).resolve();
+                                if(storage.isPresent() && storage.get().canReceive())
+                                    chargeableDirections.add(direction);
+                            }
+                            if(chargeableDirections.isEmpty())
+                                this.chargeableBlocks.remove(offset);
+                            else{
+                                if(!chargeableDirections.equals(this.chargeableBlocks.get(offset)))
+                                    this.chargeableBlocks.put(offset, new ArrayList<>(chargeableDirections));
+                                chargeableDirections.clear();
                             }
                         }
-                        if(!canAcceptEnergy)
-                            this.chargeableBlocks.remove(offset);
                     }
 
                     int range = this.type.range.get();
@@ -106,12 +111,22 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 // charge block in the list
                 if(this.energy > 0 && this.redstoneMode.canOperate(this.isRedstonePowered)){
                     Set<BlockPos> toRemove = new HashSet<>();
-                    for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                        BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                        LazyOptional<IEnergyStorage> optional;
-                        if(tile != null && (optional = tile.getCapability(ForgeCapabilities.ENERGY, entry.getValue())).isPresent()){
+                    for(Map.Entry<BlockPos,List<Direction>> entry : this.chargeableBlocks.entrySet()){
+                        BlockEntity entity = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
                             final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                            int transferred = optional.map(storage -> storage.receiveEnergy(toTransfer, false)).orElse(0);
+                            int transferred = 0;
+                            for(Direction direction : entry.getValue()){
+                                Optional<IEnergyStorage> storage = entity.getCapability(ForgeCapabilities.ENERGY, direction).resolve();
+                                if(storage.isPresent() && storage.get().canReceive()){
+                                    transferred += storage.get().receiveEnergy(toTransfer - transferred, false);
+                                    if(transferred >= toTransfer)
+                                        break;
+                                }else{
+                                    toRemove.add(entry.getKey());
+                                    break;
+                                }
+                            }
                             if(transferred > 0){
                                 spawnParticles = true;
                                 this.energy -= transferred;
@@ -232,12 +247,15 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             compound.putInt("blockSearchZ", this.blockSearchX);
             int[] arr = new int[this.chargeableBlocks.size() * 4];
             int index = 0;
-            for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
+            for(Map.Entry<BlockPos,List<Direction>> entry : this.chargeableBlocks.entrySet()){
                 arr[index] = entry.getKey().getX();
                 arr[index + 1] = entry.getKey().getY();
                 arr[index + 2] = entry.getKey().getZ();
-                arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().get3DDataValue();
-                index++;
+                int sides = entry.getValue().contains(null) ? 1 : 0;
+                for(Direction side : entry.getValue())
+                    sides |= 1 << (side == null ? 0 : side.ordinal() + 1);
+                arr[index + 3] = sides;
+                index += 4;
             }
             compound.putIntArray("chargeableBlocks", arr);
         }
@@ -271,13 +289,19 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             this.blockSearchX = compound.getInt("blockSearchX");
             this.blockSearchY = compound.getInt("blockSearchY");
             this.blockSearchZ = compound.getInt("blockSearchZ");
-            int[] arr = compound.getIntArray("chargeableBlocks");
             this.chargeableBlocks.clear();
-            for(int i = 0; i < arr.length / 4; i++)
-                this.chargeableBlocks.put(
-                    new BlockPos(arr[i], arr[i + 1], arr[i + 2]),
-                    arr[i + 3] == -1 ? null : Direction.from3DDataValue(arr[i + 3])
-                );
+            int[] arr = compound.getIntArray("chargeableBlocks");
+            List<Direction> directions = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
+            for(int i = 0; i < arr.length / 4; i++){
+                BlockPos pos = new BlockPos(arr[i * 4], arr[i * 4 + 1], arr[i * 4 + 2]);
+                int sides = arr[i * 4 + 3];
+                for(Direction side : CAPABILITY_DIRECTIONS){
+                    if(((sides >> (side == null ? 0 : side.ordinal() + 1)) & 1) == 1)
+                        directions.add(side);
+                }
+                this.chargeableBlocks.put(pos, new ArrayList<>(directions));
+                directions.clear();
+            }
         }
     }
 
