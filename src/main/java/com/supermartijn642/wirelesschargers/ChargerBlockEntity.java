@@ -39,7 +39,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     private RedstoneMode redstoneMode = RedstoneMode.DISABLED;
     private boolean isRedstonePowered;
     private int blockSearchX, blockSearchY, blockSearchZ;
-    private final Map<BlockPos,Direction> chargeableBlocks = new LinkedHashMap<>();
+    private final Map<BlockPos,List<Direction>> chargeableBlocks = new LinkedHashMap<>();
     public int renderingTickCount = 0;
     public float renderingRotationSpeed, renderingRotation;
 
@@ -63,6 +63,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }else{
             boolean spawnParticles = false;
             if(this.type.canChargeBlocks){
+                List<Direction> chargeableDirections = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
                 // find blocks with the energy capability
                 for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
                     BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
@@ -70,19 +71,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
                     if(!pos.equals(this.worldPosition)){
                         BlockEntity entity = this.level.getBlockEntity(pos);
-                        boolean canAcceptEnergy = false;
-                        for(Direction direction : CAPABILITY_DIRECTIONS){
-                            if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            for(Direction direction : CAPABILITY_DIRECTIONS){
                                 EnergyStorage storage = EnergyStorage.SIDED.find(this.level, pos, entity.getBlockState(), entity, direction);
-                                if(storage != null && storage.supportsInsertion()){
-                                    this.chargeableBlocks.put(offset, direction);
-                                    canAcceptEnergy = true;
-                                    break;
-                                }
+                                if(storage != null && storage.supportsInsertion())
+                                    chargeableDirections.add(direction);
+                            }
+                            if(chargeableDirections.isEmpty())
+                                this.chargeableBlocks.remove(offset);
+                            else{
+                                if(!chargeableDirections.equals(this.chargeableBlocks.get(offset)))
+                                    this.chargeableBlocks.put(offset, new ArrayList<>(chargeableDirections));
+                                chargeableDirections.clear();
                             }
                         }
-                        if(!canAcceptEnergy)
-                            this.chargeableBlocks.remove(offset);
                     }
 
                     int range = this.type.range.get();
@@ -102,21 +104,31 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 // charge block in the list
                 if(this.energy > 0 && this.redstoneMode.canOperate(this.isRedstonePowered)){
                     Set<BlockPos> toRemove = new HashSet<>();
-                    for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
-                        BlockEntity tile = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
-                        EnergyStorage storage;
-                        if(tile != null && (storage = EnergyStorage.SIDED.find(this.level, tile.getBlockPos(), tile.getBlockState(), tile, entry.getValue())) != null){
-                            try(Transaction transaction = Transaction.openOuter()){
-                                final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                                int transferred = (int)storage.insert(toTransfer, transaction);
-                                if(transferred > 0){
-                                    spawnParticles = true;
-                                    this.energy -= transferred;
-                                    this.dataChanged();
-                                    transaction.commit();
-                                    if(this.energy <= 0)
+                    for(Map.Entry<BlockPos,List<Direction>> entry : this.chargeableBlocks.entrySet()){
+                        BlockEntity entity = this.level.getBlockEntity(this.worldPosition.offset(entry.getKey()));
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
+                            int transferred = 0;
+                            for(Direction direction : entry.getValue()){
+                                EnergyStorage storage = EnergyStorage.SIDED.find(this.level, entity.getBlockPos(), entity.getBlockState(), entity, direction);
+                                if(storage != null && storage.supportsInsertion()){
+                                    try(Transaction transaction = Transaction.openOuter()){
+                                        transferred += (int)storage.insert(toTransfer, transaction);
+                                        transaction.commit();
+                                    }
+                                    if(transferred >= toTransfer)
                                         break;
+                                }else{
+                                    toRemove.add(entry.getKey());
+                                    break;
                                 }
+                            }
+                            if(transferred > 0){
+                                spawnParticles = true;
+                                this.energy -= transferred;
+                                this.dataChanged();
+                                if(this.energy <= 0)
+                                    break;
                             }
                         }else
                             toRemove.add(entry.getKey());
@@ -243,12 +255,15 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             compound.putInt("blockSearchZ", this.blockSearchX);
             int[] arr = new int[this.chargeableBlocks.size() * 4];
             int index = 0;
-            for(Map.Entry<BlockPos,Direction> entry : this.chargeableBlocks.entrySet()){
+            for(Map.Entry<BlockPos,List<Direction>> entry : this.chargeableBlocks.entrySet()){
                 arr[index] = entry.getKey().getX();
                 arr[index + 1] = entry.getKey().getY();
                 arr[index + 2] = entry.getKey().getZ();
-                arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().get3DDataValue();
-                index++;
+                int sides = entry.getValue().contains(null) ? 1 : 0;
+                for(Direction side : entry.getValue())
+                    sides |= 1 << (side == null ? 0 : side.ordinal() + 1);
+                arr[index + 3] = sides;
+                index += 4;
             }
             compound.putIntArray("chargeableBlocks", arr);
         }
@@ -282,13 +297,19 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             this.blockSearchX = compound.getInt("blockSearchX");
             this.blockSearchY = compound.getInt("blockSearchY");
             this.blockSearchZ = compound.getInt("blockSearchZ");
-            int[] arr = compound.getIntArray("chargeableBlocks");
             this.chargeableBlocks.clear();
-            for(int i = 0; i < arr.length / 4; i++)
-                this.chargeableBlocks.put(
-                    new BlockPos(arr[i], arr[i + 1], arr[i + 2]),
-                    arr[i + 3] == -1 ? null : Direction.from3DDataValue(arr[i + 3])
-                );
+            int[] arr = compound.getIntArray("chargeableBlocks");
+            List<Direction> directions = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
+            for(int i = 0; i < arr.length / 4; i++){
+                BlockPos pos = new BlockPos(arr[i * 4], arr[i * 4 + 1], arr[i * 4 + 2]);
+                int sides = arr[i * 4 + 3];
+                for(Direction side : CAPABILITY_DIRECTIONS){
+                    if(((sides >> (side == null ? 0 : side.ordinal() + 1)) & 1) == 1)
+                        directions.add(side);
+                }
+                this.chargeableBlocks.put(pos, new ArrayList<>(directions));
+                directions.clear();
+            }
         }
     }
 
