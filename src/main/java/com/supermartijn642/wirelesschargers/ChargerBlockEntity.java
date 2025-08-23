@@ -29,13 +29,13 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
-    private static final Set<EnumFacing> CAPABILITY_DIRECTIONS;
+    private static final List<EnumFacing> CAPABILITY_DIRECTIONS;
 
     static{
-        Set<EnumFacing> directions = new HashSet<>();
+        List<EnumFacing> directions = new ArrayList<>(7);
         directions.add(null);
         directions.addAll(Arrays.asList(EnumFacing.values()));
-        CAPABILITY_DIRECTIONS = Collections.unmodifiableSet(directions);
+        CAPABILITY_DIRECTIONS = Collections.unmodifiableList(directions);
     }
 
     public final ChargerType type;
@@ -44,7 +44,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     private RedstoneMode redstoneMode = RedstoneMode.DISABLED;
     private boolean isRedstonePowered;
     private int blockSearchX, blockSearchY, blockSearchZ;
-    private final Map<BlockPos,EnumFacing> chargeableBlocks = new LinkedHashMap<>();
+    private final Map<BlockPos,List<EnumFacing>> chargeableBlocks = new LinkedHashMap<>();
     public int renderingTickCount = 0;
     public float renderingRotationSpeed, renderingRotation;
 
@@ -67,6 +67,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }else{
             boolean spawnParticles = false;
             if(this.type.canChargeBlocks){
+                List<EnumFacing> chargeableDirections = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
                 // find blocks with the energy capability
                 for(int i = 0; i < SEARCH_BLOCKS_PER_TICK; i++){
                     BlockPos offset = new BlockPos(this.blockSearchX, this.blockSearchY, this.blockSearchZ);
@@ -74,17 +75,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
                     if(!pos.equals(this.pos)){
                         TileEntity entity = this.world.getTileEntity(pos);
-                        boolean canAcceptEnergy = false;
-                        for(EnumFacing direction : CAPABILITY_DIRECTIONS){
-                            IEnergyStorage capability;
-                            if(entity != null && !(entity instanceof ChargerBlockEntity) && (capability = entity.getCapability(CapabilityEnergy.ENERGY, direction)) != null && capability.canReceive()){
-                                this.chargeableBlocks.put(offset, direction);
-                                canAcceptEnergy = true;
-                                break;
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
+                            for(EnumFacing direction : CAPABILITY_DIRECTIONS){
+                                IEnergyStorage storage = entity.getCapability(CapabilityEnergy.ENERGY, direction);
+                                if(storage != null && storage.canReceive())
+                                    chargeableDirections.add(direction);
+                            }
+                            if(chargeableDirections.isEmpty())
+                                this.chargeableBlocks.remove(offset);
+                            else{
+                                if(!chargeableDirections.equals(this.chargeableBlocks.get(offset)))
+                                    this.chargeableBlocks.put(offset, new ArrayList<>(chargeableDirections));
+                                chargeableDirections.clear();
                             }
                         }
-                        if(!canAcceptEnergy)
-                            this.chargeableBlocks.remove(offset);
                     }
 
                     int range = this.type.range.get();
@@ -104,12 +108,22 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 // charge block in the list
                 if(this.energy > 0 && this.redstoneMode.canOperate(this.isRedstonePowered)){
                     Set<BlockPos> toRemove = new HashSet<>();
-                    for(Map.Entry<BlockPos,EnumFacing> entry : this.chargeableBlocks.entrySet()){
-                        TileEntity tile = this.world.getTileEntity(this.pos.add(entry.getKey()));
-                        IEnergyStorage capability;
-                        if(tile != null && (capability = tile.getCapability(CapabilityEnergy.ENERGY, entry.getValue())) != null){
+                    for(Map.Entry<BlockPos,List<EnumFacing>> entry : this.chargeableBlocks.entrySet()){
+                        TileEntity entity = this.world.getTileEntity(this.pos.add(entry.getKey()));
+                        if(entity != null && !(entity instanceof ChargerBlockEntity)){
                             final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                            int transferred = capability.receiveEnergy(toTransfer, false);
+                            int transferred = 0;
+                            for(EnumFacing direction : entry.getValue()){
+                                IEnergyStorage storage = entity.getCapability(CapabilityEnergy.ENERGY, direction);
+                                if(storage != null && storage.canReceive()){
+                                    transferred += storage.receiveEnergy(toTransfer - transferred, false);
+                                    if(transferred >= toTransfer)
+                                        break;
+                                }else{
+                                    toRemove.add(entry.getKey());
+                                    break;
+                                }
+                            }
                             if(transferred > 0){
                                 spawnParticles = true;
                                 this.energy -= transferred;
@@ -233,12 +247,15 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             compound.setInteger("blockSearchZ", this.blockSearchX);
             int[] arr = new int[this.chargeableBlocks.size() * 4];
             int index = 0;
-            for(Map.Entry<BlockPos,EnumFacing> entry : this.chargeableBlocks.entrySet()){
+            for(Map.Entry<BlockPos,List<EnumFacing>> entry : this.chargeableBlocks.entrySet()){
                 arr[index] = entry.getKey().getX();
                 arr[index + 1] = entry.getKey().getY();
                 arr[index + 2] = entry.getKey().getZ();
-                arr[index + 3] = entry.getValue() == null ? -1 : entry.getValue().getIndex();
-                index++;
+                int sides = entry.getValue().contains(null) ? 1 : 0;
+                for(EnumFacing side : entry.getValue())
+                    sides |= 1 << (side == null ? 0 : side.ordinal() + 1);
+                arr[index + 3] = sides;
+                index += 4;
             }
             compound.setIntArray("chargeableBlocks", arr);
         }
@@ -272,13 +289,19 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
             this.blockSearchX = compound.getInteger("blockSearchX");
             this.blockSearchY = compound.getInteger("blockSearchY");
             this.blockSearchZ = compound.getInteger("blockSearchZ");
-            int[] arr = compound.getIntArray("chargeableBlocks");
             this.chargeableBlocks.clear();
-            for(int i = 0; i < arr.length / 4; i++)
-                this.chargeableBlocks.put(
-                    new BlockPos(arr[i], arr[i + 1], arr[i + 2]),
-                    arr[i + 3] == -1 ? null : EnumFacing.getFront(arr[i + 3])
-                );
+            int[] arr = compound.getIntArray("chargeableBlocks");
+            List<EnumFacing> directions = new ArrayList<>(CAPABILITY_DIRECTIONS.size());
+            for(int i = 0; i < arr.length / 4; i++){
+                BlockPos pos = new BlockPos(arr[i * 4], arr[i * 4 + 1], arr[i * 4 + 2]);
+                int sides = arr[i * 4 + 3];
+                for(EnumFacing side : CAPABILITY_DIRECTIONS){
+                    if(((sides >> (side == null ? 0 : side.ordinal() + 1)) & 1) == 1)
+                        directions.add(side);
+                }
+                this.chargeableBlocks.put(pos, new ArrayList<>(directions));
+                directions.clear();
+            }
         }
     }
 
