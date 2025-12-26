@@ -41,11 +41,11 @@ public class ChargerScreen extends BlockEntityBaseWidget<ChargerBlockEntity> {
     }
 
     private int getEnergy(){
-        return this.validateObjectOrClose() ? this.object.getEnergyStored() : 0;
+        return this.validateObjectOrClose() ? (int)this.object.getAmount() : 0;
     }
 
     private int getCapacity(){
-        return this.validateObjectOrClose() ? this.object.getMaxEnergyStored() : 1;
+        return this.validateObjectOrClose() ? (int)this.object.getCapacity() : 1;
     }
 
     private boolean isAreaHighlighted(){

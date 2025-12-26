@@ -8,7 +8,10 @@ import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketsApi;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -29,10 +32,27 @@ import java.util.*;
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, EnergyStorage {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
     private static final Set<Direction> CAPABILITY_DIRECTIONS = EnumSet.allOf(Direction.class);
+
+    private final SnapshotParticipant<Integer> snapshotParticipant = new SnapshotParticipant<>() {
+        @Override
+        protected Integer createSnapshot(){
+            return ChargerBlockEntity.this.energy;
+        }
+
+        @Override
+        protected void readSnapshot(Integer snapshot){
+            ChargerBlockEntity.this.energy = snapshot;
+        }
+
+        @Override
+        protected void onFinalCommit(){
+            ChargerBlockEntity.this.dataChanged();
+        }
+    };
 
     public final ChargerType type;
     private int energy;
@@ -51,7 +71,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     @Override
     public void update(){
-        if(this.level.isClientSide){
+        if(this.level.isClientSide()){
             this.renderingTickCount++;
             if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
                 this.renderingRotationSpeed = Math.max(0, this.renderingRotationSpeed - 0.02f);
@@ -113,7 +133,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                                 EnergyStorage storage = EnergyStorage.SIDED.find(this.level, entity.getBlockPos(), entity.getBlockState(), entity, direction);
                                 if(storage != null && storage.supportsInsertion()){
                                     try(Transaction transaction = Transaction.openOuter()){
-                                        transferred += (int)storage.insert(toTransfer, transaction);
+                                        transferred += (int)storage.insert(toTransfer - transferred, transaction);
                                         transaction.commit();
                                     }
                                     if(transferred >= toTransfer)
@@ -175,23 +195,20 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     Inventory inventory = player.getInventory();
                     PlayerInventoryStorage inventoryStorage = PlayerInventoryStorage.of(player);
                     for(int i = 0; i < inventory.getContainerSize(); i++){
-                        ItemStack stack = inventory.getItem(i);
-                        if(!stack.isEmpty()){
-                            EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)));
-                            if(storage != null && storage.supportsInsertion()){
-                                try(Transaction transaction = Transaction.openOuter()){
-                                    int transferred = (int)storage.insert(toTransfer, transaction);
-                                    if(transferred > 0){
-                                        spawnParticles = true;
-                                        this.energy -= transferred;
-                                        this.dataChanged();
-                                        transaction.commit();
-                                        if(this.energy <= 0)
-                                            break loop;
-                                        toTransfer -= transferred;
-                                        if(toTransfer <= 0)
-                                            continue loop;
-                                    }
+                        EnergyStorage storage = ContainerItemContext.ofPlayerSlot(player, inventoryStorage.getSlot(i)).find(EnergyStorage.ITEM);
+                        if(storage != null && storage.supportsInsertion()){
+                            try(Transaction transaction = Transaction.openOuter()){
+                                int transferred = (int)storage.insert(toTransfer, transaction);
+                                if(transferred > 0){
+                                    spawnParticles = true;
+                                    this.energy -= transferred;
+                                    this.dataChanged();
+                                    transaction.commit();
+                                    if(this.energy <= 0)
+                                        break loop;
+                                    toTransfer -= transferred;
+                                    if(toTransfer <= 0)
+                                        continue loop;
                                 }
                             }
                         }
@@ -309,25 +326,40 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         }
     }
 
-    public int receiveEnergy(int maxReceive, boolean simulate){
-        int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
-        if(!simulate){
+    @Override
+    public long insert(long amount, TransactionContext transaction){
+        StoragePreconditions.notNegative(amount);
+        int received = (int)Math.min(amount, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
+        if(received > 0){
+            this.snapshotParticipant.updateSnapshots(transaction);
             this.energy += received;
-            this.dataChanged();
         }
         return received;
     }
 
-    public int getEnergyStored(){
+    @Override
+    public long extract(long amount, TransactionContext transaction){
+        return 0;
+    }
+
+    @Override
+    public long getAmount(){
         return this.energy;
     }
 
-    public int getMaxEnergyStored(){
+    @Override
+    public long getCapacity(){
         return this.type.capacity.get();
     }
 
-    public void setEnergyStored(int energy){
-        this.energy = energy;
+    @Override
+    public boolean supportsInsertion(){
+        return true;
+    }
+
+    @Override
+    public boolean supportsExtraction(){
+        return false;
     }
 
     public enum RedstoneMode {
