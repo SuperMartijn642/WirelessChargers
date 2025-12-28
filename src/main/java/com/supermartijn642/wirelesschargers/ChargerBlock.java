@@ -83,7 +83,7 @@ public class ChargerBlock extends BaseBlock implements EntityHoldingBlock, Simpl
 
     @Override
     protected InteractionFeedback interact(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, Direction hitSide, Vec3 hitLocation){
-        if(level.isClientSide)
+        if(level.isClientSide())
             WirelessChargersClient.openChargerScreen(TextComponents.block(this).get(), level, pos);
         return InteractionFeedback.SUCCESS;
     }

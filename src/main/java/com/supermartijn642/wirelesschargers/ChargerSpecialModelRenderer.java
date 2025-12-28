@@ -6,10 +6,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.block.BaseBlock;
-import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
@@ -32,6 +33,7 @@ public class ChargerSpecialModelRenderer implements SpecialModelRenderer.Unbaked
             ChargerType.CODEC.fieldOf("charger").forGetter(renderer -> renderer.chargerType)
         ).apply(instance, ChargerSpecialModelRenderer::new)
     );
+    private static final CameraRenderState DUMMY_CAMERA_RENDER_STATE = new CameraRenderState();
 
     private final ChargerType chargerType;
     private ChargerBlockEntity entity;
@@ -41,15 +43,12 @@ public class ChargerSpecialModelRenderer implements SpecialModelRenderer.Unbaked
     }
 
     @Override
-    public @Nullable SpecialModelRenderer<?> bake(EntityModelSet entityModelSet){
-        return new SpecialModelRenderer<CompoundTag>() {
+    public @Nullable SpecialModelRenderer<?> bake(SpecialModelRenderer.BakingContext context){
+        return new SpecialModelRenderer<BlockEntityRenderState>() {
             @Override
-            public void render(@Nullable CompoundTag data, ItemDisplayContext displayContext, PoseStack poseStack, MultiBufferSource bufferSource, int combinedLight, int combinedOverlay, boolean hasFoil){
-                ChargerBlockEntity entity = ChargerSpecialModelRenderer.this.getEntity();
-                entity.readData(TagValueInput.create(new ProblemReporter.ScopedCollector(entity.problemPath(), WirelessChargers.LOGGER), CommonUtils.getRegistryAccess(), data));
-                BlockEntityRenderer<ChargerBlockEntity> renderer = ClientUtils.getMinecraft().getBlockEntityRenderDispatcher().getRenderer(entity);
-                //noinspection DataFlowIssue
-                renderer.render(entity, ClientUtils.getPartialTicks(), poseStack, bufferSource, combinedLight, combinedOverlay, Vec3.ZERO);
+            public void submit(@Nullable BlockEntityRenderState entityRenderState, ItemDisplayContext displayContext, PoseStack poseStack, SubmitNodeCollector output, int combinedLight, int combinedOverlay, boolean hasFoil, int k){
+                if(entityRenderState != null)
+                    ClientUtils.getMinecraft().getBlockEntityRenderDispatcher().submit(entityRenderState, poseStack, output, DUMMY_CAMERA_RENDER_STATE);
             }
 
             @Override
@@ -57,8 +56,18 @@ public class ChargerSpecialModelRenderer implements SpecialModelRenderer.Unbaked
             }
 
             @Override
-            public @Nullable CompoundTag extractArgument(ItemStack stack){
-                return stack.has(BaseBlock.TILE_DATA) ? stack.get(BaseBlock.TILE_DATA) : new CompoundTag();
+            public @Nullable BlockEntityRenderState extractArgument(ItemStack stack){
+                // Read entity data from stack
+                ChargerBlockEntity entity = ChargerSpecialModelRenderer.this.getEntity();
+                CompoundTag data = stack.has(BaseBlock.TILE_DATA) ? stack.get(BaseBlock.TILE_DATA) : new CompoundTag();
+                entity.readData(TagValueInput.create(new ProblemReporter.ScopedCollector(entity.problemPath(), WirelessChargers.LOGGER), CommonUtils.getRegistryAccess(), data));
+                // Extract block entity render state
+                BlockEntityRenderer<ChargerBlockEntity,BlockEntityRenderState> renderer = ClientUtils.getMinecraft().getBlockEntityRenderDispatcher().getRenderer(entity);
+                if(renderer == null)
+                    return null;
+                BlockEntityRenderState entityRenderState = renderer.createRenderState();
+                renderer.extractRenderState(entity, entityRenderState, ClientUtils.getPartialTicks(), Vec3.ZERO, null);
+                return entityRenderState;
             }
         };
     }

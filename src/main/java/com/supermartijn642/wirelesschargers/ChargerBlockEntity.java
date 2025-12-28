@@ -57,7 +57,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     @Override
     public void update(){
-        if(this.level.isClientSide){
+        if(this.level.isClientSide()){
             this.renderingTickCount++;
             if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
                 this.renderingRotationSpeed = Math.max(0, this.renderingRotationSpeed - 0.02f);
