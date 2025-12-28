@@ -82,8 +82,7 @@ public class ChargerModelType {
     private static final ChargerModelType[] values = new ChargerModelType[]{BASIC_WIRELESS_BLOCK_CHARGER, ADVANCED_WIRELESS_BLOCK_CHARGER, BASIC_WIRELESS_PLAYER_CHARGER, ADVANCED_WIRELESS_PLAYER_CHARGER};
 
     public final BlockShape collisionShape, outlineShape;
-    public final ResourceLocation blockModel;
-    public final ResourceLocation ringModel;
+    public final ResourceLocation blockModel, ringModel;
     public final double ringYOffset;
 
     private ChargerModelType(BlockShape collisionShape, BlockShape outlineShape, String blockModel, String ringModel, double ringYOffset){

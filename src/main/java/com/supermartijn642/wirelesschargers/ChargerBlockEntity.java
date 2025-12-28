@@ -2,29 +2,31 @@ package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BaseBlockEntity;
 import com.supermartijn642.core.block.TickableBlockEntity;
-import com.supermartijn642.wirelesschargers.compat.ModCompatibility;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 import java.util.*;
 
 /**
  * Created 7/8/2021 by SuperMartijn642
  */
-public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, IEnergyStorage {
+public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlockEntity, EnergyHandler {
 
     private static final int SEARCH_BLOCKS_PER_TICK = 5;
 
@@ -36,6 +38,24 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
         directions.addAll(Arrays.asList(Direction.values()));
         CAPABILITY_DIRECTIONS = Collections.unmodifiableList(directions);
     }
+
+    private final SnapshotJournal<Integer> snapshotJournal = new SnapshotJournal<>() {
+        @Override
+        protected Integer createSnapshot(){
+            return ChargerBlockEntity.this.energy;
+        }
+
+        @Override
+        protected void revertToSnapshot(Integer snapshot){
+            ChargerBlockEntity.this.energy = snapshot;
+        }
+
+        @Override
+        protected void onRootCommit(Integer originalState){
+            if(originalState != ChargerBlockEntity.this.energy)
+                ChargerBlockEntity.this.dataChanged();
+        }
+    };
 
     public final ChargerType type;
     private int energy;
@@ -54,7 +74,7 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
 
     @Override
     public void update(){
-        if(this.level.isClientSide){
+        if(this.level.isClientSide()){
             this.renderingTickCount++;
             if(!this.redstoneMode.canOperate(this.isRedstonePowered)){
                 this.renderingRotationSpeed = Math.max(0, this.renderingRotationSpeed - 0.02f);
@@ -76,8 +96,8 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                         BlockEntity entity = this.level.getBlockEntity(pos);
                         if(entity != null && !(entity instanceof ChargerBlockEntity)){
                             for(Direction direction : CAPABILITY_DIRECTIONS){
-                                IEnergyStorage storage = this.level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null, entity, direction);
-                                if(storage != null && storage.canReceive())
+                                EnergyHandler storage = this.level.getCapability(Capabilities.Energy.BLOCK, pos, null, entity, direction);
+                                if(storage != null)
                                     chargeableDirections.add(direction);
                             }
                             if(chargeableDirections.isEmpty())
@@ -113,9 +133,12 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                             final int toTransfer = Math.min(this.energy, this.type.transferRate.get());
                             int transferred = 0;
                             for(Direction direction : entry.getValue()){
-                                IEnergyStorage storage = this.level.getCapability(Capabilities.EnergyStorage.BLOCK, entry.getKey(), null, entity, direction);
-                                if(storage != null && storage.canReceive()){
-                                    transferred += storage.receiveEnergy(toTransfer - transferred, false);
+                                EnergyHandler storage = this.level.getCapability(Capabilities.Energy.BLOCK, entry.getKey(), null, entity, direction);
+                                if(storage != null){
+                                    try(Transaction transaction = Transaction.openRoot()){
+                                        transferred += storage.insert(toTransfer - transferred, transaction);
+                                        transaction.commit();
+                                    }
                                     if(transferred >= toTransfer)
                                         break;
                                 }else{
@@ -143,43 +166,18 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                 loop:
                 for(Player player : players){
                     int toTransfer = Math.min(this.energy, this.type.transferRate.get());
-                    // Check Curios/Baubles slots
-                    IItemHandlerModifiable handler = ModCompatibility.curios.getCuriosStacks(player);
-                    for(int i = 0; i < handler.getSlots(); i++){
-                        ItemStack stack = handler.getStackInSlot(i);
-                        if(!stack.isEmpty()){
-                            IEnergyStorage storage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
-                            if(storage != null && storage.canReceive()){
-                                final int max = toTransfer;
-                                int transferred = storage.receiveEnergy(max, false);
-                                if(transferred > 0){
-                                    handler.setStackInSlot(i, stack);
-                                    spawnParticles = true;
-                                    this.energy -= transferred;
-                                    this.dataChanged();
-                                    if(this.energy <= 0)
-                                        break loop;
-                                    toTransfer -= transferred;
-                                    if(toTransfer <= 0)
-                                        continue loop;
-                                }
-                            }
-                        }
-                    }
                     // Check player inventory
                     Inventory inventory = player.getInventory();
                     for(int i = 0; i < inventory.getContainerSize(); i++){
-                        ItemStack stack = inventory.getItem(i);
-                        if(!stack.isEmpty()){
-                            IEnergyStorage storage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
-                            if(storage != null && storage.canReceive()){
-                                final int max = toTransfer;
-                                int transferred = storage.receiveEnergy(max, false);
+                        EnergyHandler storage = ItemAccess.forPlayerSlot(player, i).getCapability(Capabilities.Energy.ITEM);
+                        if(storage != null){
+                            try(Transaction transaction = Transaction.openRoot()){
+                                int transferred = storage.insert(toTransfer, transaction);
                                 if(transferred > 0){
-                                    inventory.setItem(i, stack);
                                     spawnParticles = true;
                                     this.energy -= transferred;
                                     this.dataChanged();
+                                    transaction.commit();
                                     if(this.energy <= 0)
                                         break loop;
                                     toTransfer -= transferred;
@@ -303,38 +301,29 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate){
-        int received = Math.min(maxReceive, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
-        if(!simulate){
+    public int insert(int amount, TransactionContext transaction){
+        TransferPreconditions.checkNonNegative(amount);
+        int received = Math.min(amount, Math.min(this.type.capacity.get() - this.energy, this.type.transferRate.get() * 100));
+        if(received > 0){
+            this.snapshotJournal.updateSnapshots(transaction);
             this.energy += received;
-            this.dataChanged();
         }
         return received;
     }
 
     @Override
-    public int extractEnergy(int maxExtract, boolean simulate){
+    public int extract(int amount, TransactionContext transaction){
         return 0;
     }
 
     @Override
-    public int getEnergyStored(){
+    public long getAmountAsLong(){
         return this.energy;
     }
 
     @Override
-    public int getMaxEnergyStored(){
+    public long getCapacityAsLong(){
         return this.type.capacity.get();
-    }
-
-    @Override
-    public boolean canExtract(){
-        return false;
-    }
-
-    @Override
-    public boolean canReceive(){
-        return true;
     }
 
     public enum RedstoneMode {

@@ -1,6 +1,6 @@
 package com.supermartijn642.wirelesschargers;
 
-import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
@@ -11,10 +11,10 @@ import java.util.function.Consumer;
  */
 public class ChargerApiProviders {
 
-    public static void register(){
-        ModLoadingContext.get().getActiveContainer().getEventBus().addListener((Consumer<RegisterCapabilitiesEvent>)event -> {
+    public static void register(IEventBus eventBus){
+        eventBus.addListener((Consumer<RegisterCapabilitiesEvent>)event -> {
             for(ChargerType type : ChargerType.values())
-                event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, type.getBlockEntityType(), (entity, side) -> entity);
+                event.registerBlockEntity(Capabilities.Energy.BLOCK, type.getBlockEntityType(), (entity, side) -> entity);
         });
     }
 }

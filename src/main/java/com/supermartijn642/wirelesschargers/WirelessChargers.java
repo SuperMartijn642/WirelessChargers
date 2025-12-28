@@ -28,6 +28,7 @@ public class WirelessChargers {
         CHANNEL.registerMessage(CycleRedstoneModePacket.class, CycleRedstoneModePacket::new, true);
 
         eventBus.addListener(ModCompatibility::init);
+        ChargerApiProviders.register(eventBus);
 
         register();
         if(CommonUtils.getEnvironmentSide().isClient())
@@ -42,7 +43,6 @@ public class WirelessChargers {
             handler.registerBlockEntityTypeCallback(type::registerBlockEntity);
             handler.registerItemCallback(type::registerItem);
         }
-        handler.registerBlockEntityTypeCallback(helper -> ChargerApiProviders.register());
     }
 
     public static void registerGenerators(){
