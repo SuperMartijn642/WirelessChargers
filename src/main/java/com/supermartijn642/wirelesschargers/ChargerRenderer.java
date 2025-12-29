@@ -3,10 +3,10 @@ package com.supermartijn642.wirelesschargers;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.supermartijn642.core.render.CustomBlockEntityRenderer;
 import com.supermartijn642.core.render.RenderUtils;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
@@ -50,11 +50,11 @@ public class ChargerRenderer implements CustomBlockEntityRenderer<ChargerBlockEn
         poseStack.translate(-0.5, 0, -0.5);
 
         ModelFeatureRenderer.CrumblingOverlay breakingOverlay = context.breakingOverlay();
-        output.submitBlockModel(poseStack, RenderType.solid(), state.ringModel, 1, 1, 1, context.packedLight(), breakingOverlay == null ? OverlayTexture.NO_OVERLAY : breakingOverlay.progress(), 0);
+        output.submitBlockModel(poseStack, RenderTypes.solidMovingBlock(), state.ringModel, 1, 1, 1, context.packedLight(), breakingOverlay == null ? OverlayTexture.NO_OVERLAY : breakingOverlay.progress(), 0);
 
         poseStack.translate(0, state.ringOffset, 0);
 
-        output.submitBlockModel(poseStack, RenderType.solid(), state.ringModel, 1, 1, 1, context.packedLight(), breakingOverlay == null ? OverlayTexture.NO_OVERLAY : breakingOverlay.progress(), 0);
+        output.submitBlockModel(poseStack, RenderTypes.solidMovingBlock(), state.ringModel, 1, 1, 1, context.packedLight(), breakingOverlay == null ? OverlayTexture.NO_OVERLAY : breakingOverlay.progress(), 0);
 
         poseStack.popPose();
 

@@ -11,7 +11,7 @@ import com.supermartijn642.wirelesschargers.packets.CycleRedstoneModePacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 public class RedstoneModeButton extends AbstractButtonWidget {
 
-    public static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "screen/redstone_mode_buttons");
+    public static final Identifier BUTTONS = Identifier.fromNamespaceAndPath("wirelesschargers", "screen/redstone_mode_buttons");
 
     private final Supplier<ChargerBlockEntity.RedstoneMode> redstoneMode;
 
