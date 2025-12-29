@@ -3,7 +3,7 @@ package com.supermartijn642.wirelesschargers.generators;
 import com.supermartijn642.core.generator.AdvancementGenerator;
 import com.supermartijn642.core.generator.ResourceCache;
 import com.supermartijn642.wirelesschargers.ChargerType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Created 02/09/2022 by SuperMartijn642
@@ -18,7 +18,7 @@ public class ChargerAdvancementGenerator extends AdvancementGenerator {
     public void generate(){
         this.advancement("wireless_charging")
             .icon(ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
-            .background(ResourceLocation.fromNamespaceAndPath("minecraft", "block/redstone_block"))
+            .background(Identifier.fromNamespaceAndPath("minecraft", "block/redstone_block"))
             .hasItemsCriterion("has_player_charger", ChargerType.BASIC_WIRELESS_PLAYER_CHARGER.getItem())
             .hasItemsCriterion("has_block_charger", ChargerType.BASIC_WIRELESS_BLOCK_CHARGER.getItem())
             .requirementGroup("has_player_charger", "has_block_charger");

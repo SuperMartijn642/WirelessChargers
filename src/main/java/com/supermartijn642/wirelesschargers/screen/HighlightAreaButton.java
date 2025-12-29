@@ -10,7 +10,7 @@ import com.supermartijn642.wirelesschargers.packets.ToggleHighlightAreaPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  */
 public class HighlightAreaButton extends AbstractButtonWidget {
 
-    public static final ResourceLocation BUTTONS = ResourceLocation.fromNamespaceAndPath("wirelesschargers", "screen/highlight_area_buttons");
+    public static final Identifier BUTTONS = Identifier.fromNamespaceAndPath("wirelesschargers", "screen/highlight_area_buttons");
 
     private final Supplier<Boolean> highlightArea;
 

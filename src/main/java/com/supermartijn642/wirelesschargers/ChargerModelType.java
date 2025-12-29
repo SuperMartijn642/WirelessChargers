@@ -1,7 +1,7 @@
 package com.supermartijn642.wirelesschargers;
 
 import com.supermartijn642.core.block.BlockShape;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Created 7/30/2021 by SuperMartijn642
@@ -82,14 +82,14 @@ public class ChargerModelType {
     private static final ChargerModelType[] values = new ChargerModelType[]{BASIC_WIRELESS_BLOCK_CHARGER, ADVANCED_WIRELESS_BLOCK_CHARGER, BASIC_WIRELESS_PLAYER_CHARGER, ADVANCED_WIRELESS_PLAYER_CHARGER};
 
     public final BlockShape collisionShape, outlineShape;
-    public final ResourceLocation blockModel, ringModel;
+    public final Identifier blockModel, ringModel;
     public final double ringYOffset;
 
     private ChargerModelType(BlockShape collisionShape, BlockShape outlineShape, String blockModel, String ringModel, double ringYOffset){
         this.collisionShape = collisionShape;
         this.outlineShape = outlineShape;
-        this.blockModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", blockModel);
-        this.ringModel = ResourceLocation.fromNamespaceAndPath("wirelesschargers", ringModel);
+        this.blockModel = Identifier.fromNamespaceAndPath("wirelesschargers", blockModel);
+        this.ringModel = Identifier.fromNamespaceAndPath("wirelesschargers", ringModel);
         this.ringYOffset = ringYOffset;
     }
 
