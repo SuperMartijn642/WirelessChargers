@@ -1,2 +1,2 @@
 ### Wireless Chargers 1.0.10
-- Initial release of Wireless Chargers for Minecraft 1.21.9 & 1.21.10
+- Initial release of Wireless Chargers for Minecraft 1.21.11
