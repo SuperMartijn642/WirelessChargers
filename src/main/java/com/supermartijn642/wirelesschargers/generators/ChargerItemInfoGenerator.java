@@ -20,7 +20,7 @@ public class ChargerItemInfoGenerator extends ItemInfoGenerator {
             this.info(type.getItem()).model(
                 this.compositeModel()
                     .addModel(this.model(type.modelType.blockModel))
-                    .addModel(this.specialModel(new ChargerSpecialModelRenderer(type), type.modelType.blockModel))
+                    .addModel(this.specialModel(new ChargerSpecialModelRenderer(type), type.modelType.blockModel, null))
             );
     }
 }

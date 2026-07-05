@@ -3,9 +3,9 @@ package com.supermartijn642.wirelesschargers;
 import com.supermartijn642.core.CommonUtils;
 import com.supermartijn642.core.block.BaseBlockEntity;
 import com.supermartijn642.core.block.TickableBlockEntity;
-import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.TrinketComponent;
-import dev.emi.trinkets.api.TrinketsApi;
+import eu.pb4.trinkets.api.TrinketAttachment;
+import eu.pb4.trinkets.api.TrinketSlotAccess;
+import eu.pb4.trinkets.api.TrinketsApi;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
@@ -16,7 +16,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -165,14 +164,14 @@ public class ChargerBlockEntity extends BaseBlockEntity implements TickableBlock
                     int toTransfer = Math.min(this.energy, this.type.transferRate.get());
                     // Check Curios/Baubles slots
                     if(CommonUtils.isModLoaded("trinkets")){
-                        Optional<TrinketComponent> component = TrinketsApi.getTrinketComponent(player);
-                        if(component.isPresent()){
-                            for(Tuple<SlotReference,ItemStack> slot : component.get().getAllEquipped()){
-                                ItemStack stack = slot.getB();
+                        TrinketAttachment component = TrinketsApi.getAttachment(player);
+                        if(component != null){
+                            for(TrinketSlotAccess slot : component.allEquipped(false)){
+                                ItemStack stack = slot.get();
                                 if(stack.isEmpty())
                                     continue;
-                                EnergyStorage storage;
-                                if(!stack.isEmpty() && (storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(new TrinketsSlotStorage(slot.getA(), stack)))) != null){
+                                EnergyStorage storage = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(new TrinketsSlotStorage(slot)));
+                                if(storage != null){
                                     try(Transaction transaction = Transaction.openOuter()){
                                         int transferred = (int)storage.insert(toTransfer, transaction);
                                         if(transferred > 0){
