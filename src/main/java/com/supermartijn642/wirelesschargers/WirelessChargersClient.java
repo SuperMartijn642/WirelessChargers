@@ -4,7 +4,7 @@ import com.supermartijn642.core.ClientUtils;
 import com.supermartijn642.core.gui.WidgetScreen;
 import com.supermartijn642.core.registry.ClientRegistrationHandler;
 import com.supermartijn642.wirelesschargers.screen.ChargerScreen;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
@@ -24,9 +24,9 @@ public class WirelessChargersClient {
         for(ChargerType type : ChargerType.values()){
             // Block entity renderers
             handler.registerCustomBlockEntityRenderer(type::getBlockEntityType, ChargerRenderer::new);
-            handler.registerBlockSpecialModelRenderer(type::getBlock, () -> new ChargerSpecialModelRenderer(type));
+            handler.registerBuiltInBlockModel(type::getBlock, (state, blockColors) -> ChargerSpecialModelRenderer.createBlockModel(type, state, blockColors));
             // Ring models
-            handler.registerBlockModelConsumer(type.modelType.ringModel, model -> RING_MODELS.put(type, model));
+            handler.registerBlockStateModelConsumer(type.modelType.ringModel, model -> RING_MODELS.put(type, model));
         }
         // Special model renderer
         handler.registerSpecialModelRenderer("charger", ChargerSpecialModelRenderer.CODEC);
